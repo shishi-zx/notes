@@ -1801,3 +1801,250 @@ export default {
 * 比如`<style lang='less'>`表示使用less语言来编写css
   * 注意：脚手架默认是没有less支持的，需要npm i less-loader，脚手架会提示你安装这个
   * 并且可能会存在兼容问题，建议降低less-loader的版本去兼容webpack版本
+
+## 组件自定义事件
+
+假设我们要子组件给父组件传递数据的话，我们需要让父组件给子组件传递一个函数类型的props数据，然后让子组件调用这个函数来实现从子组件向父组件的逆向传递数据，比如
+
+父组件：
+
+~~~vue
+<template>
+  <div class="outer">
+    <h1>{{ msg }}</h1>
+    <School :getSchoolName="getSchoolName" />
+    <hr>
+    <Student/>
+  </div>
+</template>
+
+<script>
+import School from './components/School.vue'
+import Student from './components/Student.vue'
+export default {
+  name: 'App',
+  components:{Student, School},
+  data() {
+    return {
+      msg: 'hello !'
+    }
+  },
+  methods: {
+    getSchoolName(name){
+      console.log('外部收到了schoolname',name);
+    }
+  },
+}
+</script>
+
+<style>
+.outer{
+  background:rgb(125, 125, 190);
+  padding: 20px;
+}
+</style>
+~~~
+
+子组件
+
+~~~vue
+<template>
+  <div class="demo">
+      <h2>学校名称：{{name}}</h2>
+      <button @click="sendSchoolName">把名字给外部</button>
+      <h2>学校地址：{{address}}</h2>
+  </div>
+</template>
+
+<script>
+export default {
+    name:'School',
+    props: ['getSchoolName'],
+    data() {
+        return {
+            name: 'cup',
+            address: 'beijing cp'
+        }
+    },
+    methods: {
+        sendSchoolName(){
+            this.getSchoolName(this.name)
+        }
+    },
+}
+</script>
+
+<style scoped>
+.demo{
+    background: rgb(133, 27, 124);
+    padding: 20px;
+}
+</style>
+~~~
+
+那么我们使用组件自定义事件来实现上面这个功能
+
+假如我们现在给另一个子组件绑定事件
+
+* 给子组件绑定一个事件，newEvent是我们自定义的（并且它是绑定给Student这个组件实例的），show是方法写在methods配置里
+
+* ~~~html
+  <Student v-on:newEvent="show" />
+  ~~~
+
+* ~~~js
+  show(str){
+        console.log('自定义事件触发了');
+      }
+  ~~~
+
+* 然后去被绑定的这个子组件里
+
+* 因为自定义事件是绑定在组件实例上的，所以子组件是拿的到
+
+* 通过this.$emit（“自定义事件”，‘参数’）方法来触发
+
+* ~~~vue
+  <template>
+    <div class="demo">
+        <h2>学生名称：{{name}}</h2>
+        <h2>学生性别：{{gender}}</h2>
+        <button @click="sendName">点击触发自己的自定义事件</button>
+    </div>
+  </template>
+  
+  <script>
+  export default {
+      name:'School',
+      data() {
+          return {
+              name: 'shishi',
+              gender: '男'
+          }
+      },
+      methods: {
+          sendName(){
+              this.$emit('newEvent',this.name)
+          }
+      },
+  }
+  </script>
+  
+  <style scoped>
+  .demo{
+      background: #bfa;
+      padding: 20px;
+  }
+  </style>
+  ~~~
+
+* 其实上面这两种方法，无论哪种，都是要先在父组件里写好回调函数
+
+* 但是自定义事件是没有接收props数据的
+
+* 注意： v-on： 的简写就是 @ 符号
+
+* 第二种自定义事件绑定的方式，这种方式更灵活
+
+* 先使用ref拿到组件实例对象
+
+* this.$refs.student.$on('newEvent',this.show) 表示当newEvent事件被处罚时候，执行show回调，注意这里不要加括号
+
+* ~~~vue
+  <template>
+    <div class="outer">
+      <h1>{{ msg }}</h1>
+      <School :getSchoolName="getSchoolName" />
+      <hr>
+      <!-- <Student v-on:newEvent="show" /> -->
+      <Student ref="student" />
+    </div>
+  </template>
+  
+  <script>
+  import School from './components/School.vue'
+  import Student from './components/Student.vue'
+  export default {
+    name: 'App',
+    components:{Student, School},
+    data() {
+      return {
+        msg: 'hello !'
+      }
+    },
+    methods: {
+      getSchoolName(name){
+        console.log('外部收到了schoolname',name);
+      },
+      show(str){
+        console.log('自定义事件触发了',str);
+      }
+    } ,
+    mounted() {
+      this.$refs.student.$on('newEvent',this.show)
+    },
+  }
+  </script>
+  
+  <style>
+  .outer{
+    background:rgb(125, 125, 190);
+    padding: 20px;
+  }
+  </style>
+  ~~~
+
+* 同样的它可以支持事件后缀符，也可以在事件注册时候使用事件注册的API，比如$once()绑定触发一次的事件
+
+## 自定义事件解绑
+
+原则就是：
+
+* 给谁绑定的自定义事件找谁触发
+* 给谁绑定的自定义事件找谁解绑
+* 使用this.$off('事件名')方法解绑
+
+~~~vue
+<template>
+  <div class="demo">
+      <h2>学生名称：{{name}}</h2>
+      <h2>学生性别：{{gender}}</h2>
+      <button @click="sendName">点击触发自己的自定义事件</button>
+      <button @click="unBind">解绑自定义事件</button>
+  </div>
+</template>
+
+<script>
+export default {
+    name:'School',
+    data() {
+        return {
+            name: 'shishi',
+            gender: '男'
+        }
+    },
+    methods: {
+        sendName(){
+            this.$emit('newEvent',this.name)
+        },
+         unBind(){
+        this.$off('newEvent')
+        }
+    },
+   
+}
+</script>
+
+<style scoped>
+.demo{
+    background: #bfa;
+    padding: 20px;
+}
+</style>
+~~~
+
+* 如果要解绑多个事件,将参数写成数组形式
+* `this.$off(['e1','e2'])`
+* 另一种暴力的解绑方法，$off()不写参数，所有自定义事件全部解绑
+* 这个自定义事件就是生命周期destroyed()函数执行前会被移除的事件
+
