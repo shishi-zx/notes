@@ -2702,9 +2702,171 @@ new Vue({
     npm install -g @vue/cli
     ```
 
-* 创建项目
+* 创建项目（先切换到要创建项目的目录）（此命令从vue-cli3版本开始,没有此命令要升级脚手架版本）
 
   * ```bash
     vue create my-project
     ```
+
+* 运行项目
+
+  * ~~~bash
+    npm run serve
+    ~~~
+
+* 当多有功能（即项目）完成后，执行打包，将文件构建在一起，以便拿文件给后端
+
+  * ~~~bash
+    npm run build
+    ~~~
+
+* 检查eslint语法（一般用不到）
+
+  * ~~~bash
+    npm run lint
+    ~~~
+
+* 更新脚手架版本（请在创建项目前）
+
+  * ```bash
+    npm update -g @vue/cli
+    ```
+
+index.html文件中的noscript标签标识，浏览器不支持js时候内容就会被渲染
+
+### render函数
+
+* 使用vue-cli 4+版本创建的项目的main.js中将App放入到容器的地方使用了这个函数
+
+* 如果我们使用template模板方式的话，控制台会报错：You are using the runtime-only build of Vue where the template compiler is not available. Either pre-compile the templates into render functions, or use the compiler-included build
+
+* 因为它给我们引入的vue（运行时版本 vue.runtime.esm.js）没有带有模板解析器
+
+  * 除非我们自己引入完整版的vue
+
+    * ~~~js
+      // import Vue from 'vue'
+      import Vue from '../../../node_modules/vue/dist/vue'
+      ~~~
+
+  * 使用render函数去渲染模板
+
+    * ~~~js
+      new Vue({
+        render: h => h(App),
+      }).$mount('#app')
+      
+      // new Vue({
+      //    el: '#app',
+      //    template: `<App></App>`,
+      //    components: {App}
+      // })
+      ~~~
+
+render()函数
+
+~~~js
+new Vue({
+  // render: h => h(App),
+  render(createElement){
+    console.log(typeof createElement);//function
+    return createElement('h1','hello')
+  }
+}).$mount('#app')
+~~~
+
+完整写法
+
+~~~js
+ render(createElement){
+    console.log(typeof createElement);//function
+    return createElement('h1','hello')
+  }
+~~~
+
+因为用不到this，所以使用箭头函数后
+
+~~~js
+render: createElement => createElement('h1','hello')
+~~~
+
+再精简变量名和使用组件
+
+~~~js
+render: h => h(App)
+~~~
+
+为什么vue版本被拆成了几个精简版vue（有vue核心，没有模板解析器部分）
+
+* 因为模板解析器代码占了源码的 1/3，交给webpack打包时候，生成的文件中不应该出现模板解析器代码（多余）
+
+### 关于脚手架的默认配置
+
+* src文件夹必须有，里面必须有main.js入口文件
+
+* 不同于老版本脚手架，新版本脚手架将webpack配置文件隐藏了
+
+  * 需要执行vue inspect > output.js,它会将所有脚手架默认配置整理输出到一个js文件中给我们看
+
+* 但是这个js文件只是给你看的，你在里面改了配置也没有用
+
+* 关于脚手架默认配置不能改的地方
+
+  * public文件夹
+  * src文件夹
+  * main.js文件
+
+* 如果我们想改默认配置的话，官网https://cli.vuejs.org/zh/config/#vue-config-js配置参考项左边目录出现的都是允许改的，没有出现的话就是不能改的
+
+  * 假如修改src文件夹和main.js文件
+
+  * 我们查看官网说明
+
+    * 需要自己编写vue.config.js文件（严格遵照 JSON 的格式），放在与package.json同级目录下
+
+    * 点击官网pages说明
+
+    * ~~~js
+      module.exports = {
+        pages: {
+          index: {
+            // page 的入口
+            entry: 'src/index/main.js',
+            // 模板来源
+            template: 'public/index.html',
+            // 在 dist/index.html 的输出
+            filename: 'index.html',
+            // 当使用 title 选项时，
+            // template 中的 title 标签需要是 <title><%= htmlWebpackPlugin.options.title %></title>
+            title: 'Index Page',
+            // 在这个页面中包含的块，默认情况下会包含
+            // 提取出来的通用 chunk 和 vendor chunk。
+            chunks: ['chunk-vendors', 'chunk-common', 'index']
+          },
+          // 当使用只有入口的字符串格式时，
+          // 模板会被推导为 `public/subpage.html`
+          // 并且如果找不到的话，就回退到 `public/index.html`。
+          // 输出文件名会被推导为 `subpage.html`。
+          subpage: 'src/subpage/main.js'
+        }
+      }
+      ~~~
+
+    * 可以看到它遵循commonjs暴露，它会优先遵循你的配置去整合默认配置
+
+    * 取消各种lint语法检查 lintOnSave:false，注意层级在配置项第一层，写多个配置时候注意各个配置层级
+
+    ~~~js
+    module.exports = {
+      pages: {
+        index: {
+          // page 的入口
+          entry: 'src/index/main.js',
+        },
+      },
+      lintOnSave:false
+    }
+    ~~~
+
+    
 
