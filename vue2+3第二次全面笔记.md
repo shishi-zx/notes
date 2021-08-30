@@ -2213,3 +2213,348 @@ export default {
     </script>
     ~~~
 
+## 消息订阅与发布
+
+* 适用于任意组件间通信
+* 模型与全局事件总线一样，在vue中建议使用总线模型
+
+* 类似报纸的发布和订阅
+  * 订阅消息： 消息名
+  * 发布消息： 消息内容
+
+原生js实现比较困难，所以我们使用第三方库，建议使用pubsub-js  库
+
+### pubsub-js  
+
+- publish subscribe
+- 一个比较简单的，能在任何框架中使用的库
+- 安装：npm i pubsub-js
+
+使用，在订阅消息和发布消息的组件里都要引入这个库
+
+~~~js
+import pubsub from 'pubsub-js'
+~~~
+
+订阅方：
+
+~~~vue
+<script>
+import pubsub from 'pubsub-js'
+export default {
+    name:'School',
+    data() {
+        return {
+            name: 'cup',
+            address: 'beijing cp'
+        }
+    },
+    mounted() {
+        pubsub.subscribe('getStName',function (msgName,value) { 
+            console.log('有人发布消息，回调函数执行',value);
+         })
+    },
+}
+</script>
+~~~
+
+发布方：
+
+~~~vue
+<script>
+import pubsub from 'pubsub-js'
+export default {
+    name:'School',
+    data() {
+        return {
+            name: 'shishi',
+            gender: '男'
+        }
+    },
+    methods: {
+        sendName(){
+            pubsub.publish('getStName',this.name)
+        }
+    },
+}
+</script>
+~~~
+
+* 回调函数 接收的第一个参数是消息的名字，从第二个参数开始才是传递的参数（即消息内容）
+
+* 它的关闭类似定时器
+
+  * ~~~js
+     mounted() {
+            this.pubId = pubsub.subscribe('getStName',function (msgName,value) { 
+                console.log('有人发布消息，回调函数执行',value);
+             })
+        },
+        beforeDestroy() {
+            pubsub.unsubscribe(this.pubId)
+        },
+    ~~~
+
+* 如果配合vue使用的话，pubsub里的函数的this是undefined，所以建议将回调函数写成箭头函数形式将this指向vueComponent实例
+
+## $nextTick
+
+* vc上，可以找到 `this.$nextTick(function(){})`它指定的回调函数会在下一次DOM节点更新后再执行
+
+* 它可以保证有些必须在真实DOM渲染在页面后才能正常运行的代码的成功执行，比如新加输入框的焦点获取
+
+  ~~~js
+  this.refs.xxx.focus()
+  ~~~
+
+## 过渡与动画
+
+### 动画
+
+* 我们需要定义好动画效果
+
+* ~~~vue
+  <style>
+  .hello{
+      background:#bfa;
+  }
+  .come{
+      animation: show 1s;
+  }
+  .go{
+      animation: show 1s reverse;
+  }
+  @keyframes show{
+      from{
+          transform: translateX(-200px);
+      }
+      to{
+          transform: translateX(0);
+      }
+  }
+  </style>
+  ~~~
+
+* 然后将需要动画效果的元素用 transition 标签包裹起来
+
+* ~~~vue
+  <template>
+    <div>
+        <button @click="isShow=!isShow">显示隐藏</button>
+      
+        <transition>
+            <h2 class='hello' v-show="isShow">hello </h2>
+        </transition>
+        
+    </div>
+  </template>
+  ~~~
+
+* 但是vue是规定好了的样式的名字，
+
+  * 比如上面的 come类必须写成 `.v-enter-active`,表示开始时候的动画
+
+  * 然后离开时候触发的样式 `.v-leave-active`
+
+  * 修改动画样式如下
+
+  * ~~~vue
+    <style>
+    .hello{
+        background:#bfa;
+    }
+    .v-enter-active{
+        animation: show 1s;
+    }
+    .v-leave-active{
+        animation: show 1s reverse;
+    }
+    @keyframes show{
+        from{
+            transform: translateX(-200px);
+        }
+        to{
+            transform: translateX(0);
+        }
+    }
+    </style>
+    ~~~
+
+    那么整个实例
+
+    ~~~vue
+    <template>
+      <div>
+          <button @click="isShow=!isShow">显示隐藏</button>
+          <transition>
+              <h2 class='hello' v-show="isShow">hello </h2>
+          </transition>
+          
+      </div>
+    </template>
+    
+    <script>
+    export default {
+        name: 'hello',
+        data() {
+            return {
+                isShow: true
+            }
+        },
+    }
+    </script>
+    
+    <style>
+    .hello{
+        background:#bfa;
+    }
+    .v-enter-active{
+        animation: show 1s;
+    }
+    .v-leave-active{
+        animation: show 1s reverse;
+    }
+    @keyframes show{
+        from{
+            transform: translateX(-200px);
+        }
+        to{
+            transform: translateX(0);
+        }
+    }
+    </style>
+    ~~~
+
+    * 发现h2可以实现动画效果了
+    * 这里你使用v-if还是v-show来实现显示隐藏都能触发动画
+    * 我们可以给transition标签加name属性
+      * 如果这样做，将 v-enter-active改为name-enter-active
+    * 如果我们要实现页面刷新一上来就有这个效果，给transition标签加上   : appear=true
+      * 注意加上：表示后面的值是一个布尔值而不是字符串
+      * 可以简写为 appear
+
+### 过渡
+
+* 过渡就是将动画的进入拆成了两部分，进入的起点和进入的终点，同理动画的离开拆为了离开的起点和离开的重点
+
+* ~~~vue
+  <style scoped>
+  .hello{
+      background:#bfa;
+      transition: 1s;
+  }
+  /* 进入的起点 */
+  .v-enter{
+      transform: translateX(-100%);
+      background: blue;
+  }
+  /* 进入的终点 */
+  .v-enter-to{
+      transform: translateX(0);
+      background: red;
+  }
+  /* 离开的起点 */
+  .v-leave{
+      transform: translateX(0);
+      background: red;
+  }
+  /* 离开的终点 */
+  .v-leave-to{
+      transform: translateX(-100%);
+      background: blue;
+  }
+  </style>
+  ~~~
+
+* 注意，要给过渡元素加上过渡时间` transition: 1s;`，不然看不出过渡效果
+
+* 并且可以优化写法
+
+  * 进入的起点就是离开的终点
+  * 进入的终点就是离开的起点
+
+  ~~~vue
+  <style scoped>
+  .hello{
+      background:#bfa;
+      transition: 1s;
+  }
+  /* 进入的起点 离开的终点*/
+  .v-enter ,.v-leave-to{
+      transform: translateX(-100%);
+      background: blue;
+  }
+  /* 进入的终点 离开的起点*/
+  .v-enter-to,.v-leave{
+      transform: translateX(0);
+      background: red;
+  }
+  </style>
+  ~~~
+
+  注意，transition标签里只能包裹一个元素，如果要包裹多个元素要使用transition-group，并且每一个子元素要个key值
+
+  ~~~html
+  <template>
+    <div>
+        <button @click="isShow=!isShow">显示隐藏</button>
+        <transition-group appear>
+            <h2 key="0" class='hello' v-if="isShow">hello </h2>
+            <h2 key="1" class='hello' v-if="isShow">hello </h2>
+            <h2 key="2" class='hello' v-if="isShow">hello </h2>
+        </transition-group>
+        
+    </div>
+  </template>
+  ~~~
+
+  * 当然可以选择用一个div将所有子元素包裹在一起再让它被transition包裹
+
+    * 但是会破环html结构
+
+    * 而且实现不了不同子元素实现相同动画的相反效果
+
+      * ~~~vue
+        <transition-group appear>
+                  <h2 key="0" class='hello' v-if="isShow">hello </h2>
+                  <h2 key="1" class='hello' v-if="!isShow">hello </h2>
+        </transition-group>
+        ~~~
+
+
+
+### 集成第三方动画
+
+​	一个比较好的库：animate.css
+
+* 官网：https://animate.style/
+
+* 安装： npm i animate.css
+
+* 引入，注意它是一个css引入
+
+* ~~~js
+  import 'animate.css'
+  ~~~
+
+* 然后给translate加**name**属性，值为官网规定好的类名`animate__animated animate__bounce`
+
+* ~~~vue
+   <transition-group name="animate__animated animate__bounce" >
+  ~~~
+
+* 到此表示给这里配置好了使用这个库
+
+* 然后指定使用哪个动画，直接去官网找和复制类名就行
+
+* ~~~vue
+  <transition-group 
+       appear
+       name="animate__animated animate__bounce" 
+       enter-active-class="animate__tada"
+       leave-active-class="animate__backOutDown">
+            <h2 key="0" class='hello' v-if="isShow">hello </h2>
+            <h2 key="1" class='hello' v-if="isShow">hello </h2>
+  </transition-group>
+  ~~~
+
