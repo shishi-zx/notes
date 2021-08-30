@@ -2050,3 +2050,166 @@ export default {
 
 * 组件上也可以绑定原生DOM事件，需要使用  `.native`修饰符
 
+## 全局事件总线
+
+可以实现任意组件间通信
+
+* 并不是一个新的API，是将之前的所学整合在一起实现的一种开发模式
+* 它让一个新的东西来整合所有的事件，然后让其他组件在这个东西里触发对应的事件来实现任意组件通信
+* 这个新的东西不属于任意一个组件，完全从组件中脱离出来，相当于一个注册中心
+* 那这个注册中心应该具备这些条件
+  * 所有组件都能看到它
+  * 这个东西必须保证能调用 $on()和$off()方法以及$emit()（不然怎么去绑定事件和解绑及触发）
+
+那么为了实现让所有组件都能看到，根据这个关系`VueComponent.prototype.__proto__ === Vue.prototype`（它能让组件实例vc访问到Vue原型上的东西）
+
+当然得在Vue引入后添加，在main.js文件中
+
+~~~js
+import Vue from 'vue'
+import App from './App.vue'
+
+Vue.config.productionTip = false
+
+//往Vue原型上放东西
+Vue.prototype.obj = {a:1,b:2}
+
+new Vue({
+  render: h => h(App)
+}).$mount('#app')
+~~~
+
+* 那么之后，你的每一个组件都可以通过**this.obj**访问到这些数据
+
+但是此时第二个条件是不满足的，因为访问不到 **$on()和$off()方法以及$emit()**
+
+* obj里并没有这些方法，它的原型是Object的原型，自然也没有
+* 那么我们可以分析到哪里有这些方法，在组件实例对象上有，而且是因为这些方法都在Vue的原型对象上，可以`console.log(Vue.prototype)`查看
+
+* 所以如果我们将obj写为一个对象，它就顺着原型链是找不到Vue的原型上去的
+
+  * 那么第一种方法：new 一个组件实例vc出来，让它来当这个注册中心，完全能实现功能
+
+  * ~~~js
+    //vc
+    const newVc = Vue.extend({})
+    const busCenter = new newVc()
+    
+    Vue.prototype.bus = busCenter
+    ~~~
+
+  * 所有的组件都能访问到bus数据，并且有**$on()和$off()方法以及$emit()**
+
+  * 自然第二种方法：就是vm，但是不能这样写
+
+  * ~~~js
+    const vm = new Vue({
+      render: h => h(App)
+    }).$mount('#app')
+    
+    Vue.prototype.bus = vm
+    ~~~
+
+  * 因为这样表示vue的工作都做完了，app模板都渲染完了你才添加上，已经晚了
+
+  * 所以我们应该写在钩子里，beforeCreate()周期函数，这个钩子里this就是vm，而且其他的数据代理以及一些准备工作还没开始，完全符合我们的需求
+
+  * ~~~js
+    new Vue({
+      render: h => h(App),
+      beforeCreate() {
+        Vue.prototype.bus = this
+      },
+    }).$mount('#app')
+    ~~~
+
+所以最标准的写法就是这样，而且一般写为这样**$bus**
+
+~~~js
+new Vue({
+  render: h => h(App),
+  beforeCreate() {
+    Vue.prototype.$bus = this//安装全局事件总线
+  },
+}).$mount('#app')
+~~~
+
+那么例子：实现school，student两个兄弟组件的消息通信
+
+school组件注册事件
+
+~~~vue
+<script>
+export default {
+    name:'School',
+    data() {
+        return {
+            name: 'cup',
+            address: 'beijing cp'
+        }
+    },
+    mounted() {
+        this.$bus.$on('hello',(data)=>{
+            console.log('我收到了其他组件传来的数据',data);
+        })
+    },
+}
+</script>
+~~~
+
+student组件触发事件
+
+~~~vue
+<script>
+export default {
+    name:'School',
+    data() {
+        return {
+            name: 'shishi',
+            gender: '男'
+        }
+    },
+    mounted() {
+        this.$bus.$emit('hello',this.name)
+    },
+   
+}
+</script>
+~~~
+
+可以看到控制输出
+
+~~~bash
+我收到了其他组件传来的数据 shishi
+~~~
+
+* 注意：
+
+  * 如果怕命名冲突，我们应该新建一个配置文件来保存我们的事件名称常量
+
+  * 我们应该给绑定了事件的组件在组件销魂时候解绑，因为组件没了但这个中间傀儡还在
+
+  * 而且使用off（）方法一定要给参数，不然全部事件都被解绑了，其他组件注册的事件都不能用了
+
+  * ~~~vue
+    <script>
+    export default {
+        name:'School',
+        data() {
+            return {
+                name: 'cup',
+                address: 'beijing cp'
+            }
+        },
+        mounted() {
+            this.$bus.$on('hello',(data)=>{
+                console.log('我收到了其他组件传来的数据',data);
+            })
+        },
+        beforeDestroy() {
+            this.$bus.$off('hello')
+        },
+    }
+    </script>
+    ~~~
+
