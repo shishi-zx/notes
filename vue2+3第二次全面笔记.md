@@ -2558,3 +2558,184 @@ export default {
   </transition-group>
   ~~~
 
+# 第四章：关于脚手架中的ajax
+
+比较常用的封装了ajax的库**axios**
+
+* 它封装了xhr
+
+* 它是jQuery封装的xhr的体积的1/4
+* 并且使用promise风格
+
+另一个 fetch 与 xhr 平级且是promise，可以拿到原生ajax方法，但是有两个问题
+
+* 它的返回数据包裹两次promise
+* 它的兼容性差，ie用不了
+
+## axios
+
+* 安装
+
+* ~~~bash
+  npm i axios
+  ~~~
+
+* 引入
+
+* ~~~js
+  import axios from 'axios'
+  ~~~
+
+* 使用
+
+* ~~~vue
+  <script>
+  import axios from 'axios'
+  export default {
+    name: 'App',
+    data() {
+      return {
+        msg: 'hello !'
+      }
+    },
+    methods: {
+      getData(){
+        axios.get('http://localhost:8000/data').then(
+          response => {
+            console.log('请求成功:',response.data);
+          },
+          error => {
+            console.log('请求失败',error.msg);
+          }
+        )
+      }
+    },
+  }
+  </script>
+  ~~~
+
+* 注意 返回的是promise对象，要 .then拿数据
+
+* 至此，在使用脚手架开发时候测试的话，这里会产生跨域问题
+
+## 解决跨域问题
+
+* cors: 后端使用，它是真正意义上的解决跨域问题，后端会在响应头上加特殊数据，让浏览器放行
+* jsonp：它巧妙的让script src绕过同源策略，同时需要前端和后端配合，不常用
+* 配置代理服务器：它会转发前端的请求，去请求目的服务器拿到数据后再给前端，这个中介是服务器，它与后端服务器通信不受同源策略限制，它发的不是ajax请求
+
+## 配置代理
+
+* nginx： 做反向代理，后端常知
+
+* 借助 vue-cli：
+
+  * 需要在vue.config.js做配置
+
+  * 官网说明：https://cli.vuejs.org/zh/config/#devserver-proxy
+
+  * 第一种代理配置方式
+
+  * ~~~js
+    module.exports = {
+        devServer: {
+          proxy: 'http://localhost:8000'
+        }
+      }
+    ~~~
+
+  * 将目标服务器ip写上就行，这样这个中介服务器就开启了
+
+  * 注意改了配置需要重启脚手架服务
+
+  * 然后需要将发送请求的地方，将目标服务器的域名换成代理服务器的域名，但是后面的路径任然要写上
+
+  * ~~~js
+    //将 8000 改为 8080（脚手架的服务端口，也就是中介服务器的域名）
+    axios.get('http://localhost:8000/data').then(
+            response => {
+              console.log('请求成功:',response.data);
+            },
+            error => {
+              console.log('请求失败',error.msg);
+            }
+          )
+    ~~~
+
+  * 注意：
+
+    * 这个代理服务器只会将本身找不到的资源请求转发给目标服务器，如果本身就有，不会转发，也就是没有跨域直接取
+    * 而且这种代理配置方式虽然简单，但是不能配置多个代理，需要第二种代理配置方式
+
+  * 第二种配置代理方式，官网说明两种配置方式都在一个页面中介绍了
+
+  * ~~~js
+    module.exports = {
+        //方式一
+        // devServer: {
+        //   proxy: 'http://localhost:8000'
+        // }
+        //方式二
+        devServer: {
+            proxy: {
+              '/api_1': {
+                target: '<url>',
+                 pathRewrite: {
+                    '^/api_1': ''
+                  },
+                ws: true,
+                changeOrigin: true
+              },
+            }
+          }
+      }
+    ~~~
+
+  * 'api_1' 是请求前缀，也就是以这个开头的请求会走代理，不加不走
+
+    * 注意这个前缀指端口号后边的开头前缀
+    * `http://localhost:8080/api_1/data`
+    * 而且这个前缀是请求的url真实存在的，它会一起转发出去，路径变为了 api_1/data
+    * 除非后端给的路径就是这样，否则要裁剪掉这个前缀，也就是重写路径
+
+  * target： 目标服务器地址
+
+  * pathRewrite: 值是一个对象，重写路径，这里使用正则表达式将api_1开头这几个字符去掉了
+
+  * ws：用于支持websocket
+
+  * changeOrigin：用于表示自己来自哪个域（控制请求头中的Host字段），true表示这个代理服务器告诉目标服务器同域名（撒谎），false表示告诉目标服务器我来自不同域名（实话），一般都要撒谎，防止服务器阻止不同域名的请求
+
+  * 要配置多个代理就加上就行了
+
+  * ~~~js
+    module.exports = {
+        //方式一
+        // devServer: {
+        //   proxy: 'http://localhost:8000'
+        // }
+        //方式二
+        devServer: {
+            proxy: {
+              '/api_1': {
+                target: '<url>',
+                pathRewrite: {
+                    '^/api_1': ''
+                  },
+                ws: true,
+                changeOrigin: true
+              },
+    
+              '/api_2': {
+                target: '<url>',
+                pathRewrite: {
+                    '^/api_2': ''
+                  },
+                ws: true,
+                changeOrigin: true
+              },
+            }
+          }
+      }
+    ~~~
+
