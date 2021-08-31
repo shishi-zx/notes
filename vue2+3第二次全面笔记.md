@@ -3948,8 +3948,206 @@ export default new Vuex.Store({
 
 编代码时候也要理解这两个单词
 
-## 简介：
+## 简介
 
 * 我们编写单页面应用来实现多个页面切换（页面没有跳转，是页面局部更新），避免以前多页面应用的来回跳转（页面会跳转）
 * 所以这个路由技术是非常常用和重要的
+* vue-router 是一个插件库，专门实SPA应用
+  * SPA：
+    * 单页Web应用（single page web application）
+    * 整个应用只有一个完整的页面
+    * 点击页面中的导航链接不会刷新页面，只会做页面的局部更新
+    * 数据需要通过ajax请求获取
+
+## 路由的理解
+
+* 一个路由就是一组映射关系（key->value）
+* key为路径，value可能是function或者 component
+* 多个路由需要一个路由器管理
+
+## 路由分类
+
+* 后端路由：
+  * value是function，用于处理客户端提交的请求
+  * 工作过程：服务器接收到请求时候，根据请求路径找到匹配的函数来处理请求，返回响应数据
+* 前端路由：
+  * value是component，用于展示页面内容
+  * 工作过程：当浏览器的路径改变时候，对应的组件就会显示
+
+## 基本使用
+
+* 流程类似vuex
+
+* 安装
+
+  ~~~bash
+  npm i vue-router
+  ~~~
+
+* 在src文件夹下创建router文件夹，里面创建index.js文件，然后编写此文件
+
+* 注意引入的三个组件就是想要切换的页面部分，
+
+* 注意这里的是 routes 不是 routers 表示路由规则集合，不是路由器集合
+
+  ~~~js
+  //用来创建整个应用的路由器
+  import Router from 'vue-router'
+  import Vue from 'vue'
+  
+  Vue.use(Router)
+  
+  //引入组件
+  import page1 from '../components/page1.vue'
+  import page2 from '../components/page2'
+  import page3 from '../components/page3'
+  
+  //创建一个路由器
+  export default new Router({
+      routes:[
+          {
+              path:'/p1',
+              component: page1
+          },
+          {
+              path:'/p2',
+              component: page2
+          },
+          {
+              path:'/p3',
+              component: page3
+          },
+      ]
+  })
+  ~~~
+
+* 然后在main.js中引入我们写的路由器，注意要加在vm实例上
+
+  ~~~js
+  import Vue from 'vue'
+  import App from './App.vue'
+  
+  //引入我们编写的路由器
+  import router from './router'
+  
+  Vue.config.productionTip = false
+  
+  new Vue({
+    render: h => h(App),
+    router,
+  }).$mount('#app')
+  ~~~
+
+* 创建三个页面组件用来切换看显示效果
+
+* ~~~vue
+  <template>
+    <div>
+        <h1>页面一</h1>
+    </div>
+  </template>
+  
+  <script>
+  export default {
+      name:'page1'
+  }
+  </script>
+  
+  <style scoped lang="less">
+  h1{
+      margin-top: 200px;
+      margin-left: 200px;
+  }
+  </style>
+  ~~~
+
+* ~~~vue
+  <template>
+    <div>
+        <h1>页面二</h1>
+    </div>
+  </template>
+  
+  <script>
+  export default {
+    name:'page2'
+  }
+  </script>
+  
+  <style scoped lang="less">
+  h1{
+      margin-top: 200px;
+      margin-left: 200px;
+  }
+  </style>
+  ~~~
+
+* 同理再来一个page3
+
+* 然后在切换路由的组件里，以前是使用a标签来点击切换，这里使用router-link来代替a标签，而且它最终也会被解析成a标签（所以写样式的时候注意是a标签，而不是router-link）
+
+* 然后在需要展示页面的地方用 router-view来占位
+
+* 注意：
+
+  * 用 to属性来指定路由路径（是在index.js中配置的路径，不是组件的具体路径）
+  * active-class="active"：表示当前路由处于激活状态时，给本标签添加这个类
+
+* ~~~vue
+  <template>
+    <div class="app">
+      <ul class="tab">
+        <!-- 实现路由的切换 -->
+        <router-link to="/p1" active-class="active">页面一</router-link>
+        <router-link to="/p2" active-class="active">页面二</router-link>
+        <router-link to="/p3" active-class="active">页面三</router-link>
+      </ul>
+      <div class="page">
+        <!-- 指定组件的呈现位置 -->
+        <router-view></router-view>
+      </div>
+    </div>
+  </template>
+  
+  <script>
+  export default {
+    name: "App",
+    components: {},
+  };
+  </script>
+  
+  <style scoped lang="less">
+  .active{
+    background: rgb(247, 144, 233) !important;
+  }
+  .app{
+    display: flex;
+  
+    .tab{
+      width: 15%;
+      height: 100vh;
+      background:#bfa;
+      list-style: none;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+  
+      a{
+        background: rgb(58, 114, 44);
+        margin-left: 0;
+        padding: 20px;
+        cursor: pointer;
+        &:hover{
+          background: rgb(71, 182, 197);
+        }
+        color: black;
+      }
+    }
+    .page{
+      width: 85%;
+      padding: 20px;
+    }
+  }
+  </style>
+  ~~~
 
