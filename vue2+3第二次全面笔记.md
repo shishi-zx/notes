@@ -2307,6 +2307,334 @@ export default {
   this.refs.xxx.focus()
   ~~~
 
+## 插槽
+
+### 默认插槽
+
+* 一个用来占位的部件
+* 首先摆上例子
+* 一个分类组件
+
+~~~vue
+<template>
+  <div class="sort">
+      <h2>xxx分类</h2>
+      <ul>
+          <li v-for="(item, index) in listData" :key="index">{{ item }}</li>
+      </ul>
+  </div>
+</template>
+
+<script>
+export default {
+    name:'Sort',
+    props: ['listData','title']
+}
+</script>
+
+<style>
+.sort{
+    background: #bfa;
+    width: 200px;
+    height: 300px;
+}
+h2{
+    text-align: center;
+    background:pink;
+}
+</style>
+~~~
+
+* App里复用多个此组件
+
+* ~~~vue
+  <template>
+    <div class="container">
+      <Sort name="食物" :listData='foods' />
+      <Sort name="游戏" :listData='games' />
+      <Sort name="电影" :listData='movies' />
+    </div>
+  </template>
+  
+  <script>
+  import Sort from './components/Sort.vue'
+  export default {
+    name: 'App',
+    components:{Sort},
+    data() {
+      return {
+        foods:['茄子','西红柿','白菜','土豆'],
+        games:['csgo','lol','pubg'],
+        movies:['绿皮书','肖声克的救赎','悲惨世界','伍佰']
+      }
+    },
+    
+  }
+  </script>
+  
+  <style>
+  .container{
+    display: flex;
+    justify-content: space-around;
+  }
+  </style>
+  ~~~
+
+* 页面将会显示三个不同的分类卡片
+
+* 现在要实现有些分类展示一些小广告，但不是全部卡片都显示
+
+  * 首先我们将组件自闭和标签改为双标签
+
+  * 然后在里面 放元素占位
+
+  * ~~~vue
+    <template>
+      <div class="container">
+        
+        <Sort name="食物" :listData='foods'>
+          <div>这里表示一个食物相关广告</div>
+        </Sort>
+        
+        <Sort name="游戏" :listData='games' >
+          <!-- 这个分类不放广告 -->
+        </Sort>
+        
+        <Sort name="电影" :listData='movies' >
+          <span>这里表示一个食物相关广告</span>
+        </Sort>
+        
+      </div>
+    </template>
+    ~~~
+
+  * 然后在组件里要使用slot标签来接收外面指定好了的结构并替换掉slot元素
+
+  * ~~~vue
+    <template>
+      <div class="sort">
+          <h2>xxx分类</h2>
+        
+          <slot>我是一个占位符，当使用者没有传递具体结构时候，我会出现，否则将我替换成传递的结构</slot>
+     
+        <ul>
+              <li v-for="(item, index) in listData" :key="index">{{ item }}</li>
+          </ul>
+      </div>
+    </template>
+    ~~~
+
+  * 当我们不写`我是一个占位符，当使用者没有传递具体结构时候，我会出现，否则将我替换成传递的结构`时候，页面就不显示东西了（没传结构时候），这就实现了一个灵活的应用
+
+  * 也就是外面的slot会替换里面的slot，实现占位需求
+
+### 具名插槽
+
+* 具有名字的插槽，上面的默认插槽是没有名字
+
+* 如果有很多个插槽，就要使用具名插槽来区分了
+
+* 但是注意
+
+  * 如果在外面这样写
+
+  * ~~~vue
+    <Sort name="食物" :listData='foods'>
+          <div>这里表示一个食物相关广告</div>
+          <a href="baidu.com">这是一个连接</a>
+    </Sort>
+    ~~~
+
+  * 然后里面还是写slot
+
+  * ~~~vue
+    <slot>1</slot>
+    <slot>2</slot>
+    ~~~
+
+  * 这两个元素都会被放到同一个 slot中，也就是在这里，所有东西都会被展示双份
+
+  * 所以我们应该给slot 加一个name属性来标识这两个插槽
+
+  * ~~~vue
+    <slot name="describe"></slot>
+    <slot name="link"></slot>
+    ~~~
+
+  * 同样的在外面需要指定往哪个插槽里放
+
+  * ~~~vue
+     <Sort name="食物" :listData='foods'>
+          <div slot="describe">这里表示一个食物相关广告</div>
+          <a slot="link" href="baidu.com">这是一个连接</a>
+    </Sort>
+    ~~~
+
+  * 而且我们可以往插槽里**追加**元素
+
+  * ~~~vue
+    <Sort name="食物" :listData='foods'>
+          <div slot="describe">这里表示一个食物相关广告</div>
+          <a slot="link" href="baidu.com">这是一个连接</a>
+          <a slot="link" href="baidu.com">这是一个连接222</a>
+          <a slot="link" href="baidu.com">这是一个连接333</a>
+    </Sort>
+    ~~~
+
+  * 如果使用了**template**标签，vue2.6新提出来的一个指定插槽的写法
+
+  * ~~~vue
+     <Sort name="食物" :listData='foods'>
+          <div slot="describe">这里表示一个食物相关广告</div>
+       
+          <template v-slot:link>
+              <a href="baidu.com">这是一个连接</a>
+              <a href="baidu.com">这是一个连接222</a>
+              <a href="baidu.com">这是一个连接333</a>
+          </template>
+       
+    </Sort>
+    ~~~
+
+### 作用域插槽
+
+* 假如我们的数据是固定的，但是每一个分类根据数据生成的结构是使用者定的
+
+* 数据固定
+
+* ~~~vue
+  <template>
+    <div class="sort">
+        <h2>{{title}}分类</h2>
+        <ul>
+            <li v-for="(item, index) in games" :key="index">{{ item }}</li>
+        </ul>
+    </div>
+  </template>
+  
+  <script>
+  export default {
+      name:'Sort',
+      props: ['title'],
+      data() {
+          return {
+               games:['csgo','lol','pubg'],
+          }
+      },
+  }
+  </script>
+  ~~~
+
+* 但是我们不能将结构写在里面，让结构被slot占位
+
+* ~~~vue
+  <template>
+    <div class="sort">
+        <h2>{{title}}分类</h2>
+      
+        <slot></slot>
+      
+    </div>
+  </template>
+  
+  <script>
+  export default {
+      name:'Sort',
+      props: ['title'],
+      data() {
+          return {
+               games:['csgo','lol','pubg'],
+          }
+      },
+  }
+  </script>
+  ~~~
+
+* 然后在外面放上结构
+
+  * 但是注意，外面是拿不到里面的数据的，所以这是一个作用域问题
+
+  * 所以我们要传数据
+
+  * ~~~vue
+    <slot :games="games" ></slot>
+    ~~~
+
+  * 它会将数据传给插槽的使用者
+
+  * 然后外面必须使用template来包裹要指定的结构
+
+  * ~~~vue
+     <Sort title="游戏">
+         <template scope="obj">
+           {{ obj }}
+            <ul>
+              <li v-for="(item, index) in obj.games" :key="index">{{ item }}</li>
+            </ul>
+         </template>
+    </Sort>
+    ~~~
+
+  * 并且使用scope来接收插槽传递过来的数据，是一个对象，里面有一个数据就是传递过来的数据
+
+  * 而且支持解构赋值
+
+  * ~~~vue
+    <Sort title="游戏">
+         <template scope="{games}">
+            <ul>
+              <li v-for="(item, index) in games" :key="index">{{ item }}</li>
+            </ul>
+         </template>
+        </Sort>
+    ~~~
+
+  * 完整例子
+
+  * ~~~vue
+    <template>
+      <div class="container">
+    
+        <Sort title="游戏">
+         <template scope="obj">
+           {{ obj }}
+            <ul>
+              <li v-for="(item, index) in obj.games" :key="index">{{ item }}</li>
+            </ul>
+         </template>
+        </Sort>
+    
+        <Sort title="游戏">
+         <template scope="obj">
+            <ol>
+              <li v-for="(item, index) in obj.games" :key="index">{{ item }}</li>
+            </ol>
+         </template>
+        </Sort>
+    
+        <Sort title="游戏">
+         <template scope="obj">
+              <h3 v-for="(item, index) in obj.games" :key="index">{{ item }}</h3>
+         </template>
+        </Sort>
+    
+    
+      </div>
+    </template>
+    ~~~
+
+  * scope也可以写成 slot-scope（新API）
+
+  * ~~~vue
+    <Sort title="游戏">
+         <template slot-scope="{games}">
+            <ul>
+              <li v-for="(item, index) in games" :key="index">{{ item }}</li>
+            </ul>
+         </template>
+    </Sort>
+    ~~~
+
 ## 过渡与动画
 
 ### 动画
@@ -2557,6 +2885,10 @@ export default {
             <h2 key="1" class='hello' v-if="isShow">hello </h2>
   </transition-group>
   ~~~
+
+  
+
+  
 
 # 第四章：关于脚手架中的ajax
 
