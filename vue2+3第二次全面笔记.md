@@ -3071,3 +3071,415 @@ h2{
       }
     ~~~
 
+# 第五章：vuex
+
+**概念**
+
+* 专门在Vue中实现集中式状态（数据）管理的一个Vue**插件**，对vue应用中多个组件的**共享状态**进行集中式的管理（读/写），也是一种组件间通信的方式，且适用于任意组件间通信
+
+**什么时候使用Vuex**  （共享）
+
+* 多个组件依赖于同一状态
+* 来自不同组件的行为需要变更同一状态
+
+## Vuex的工作原理
+
+* 原理图：https://vuex.vuejs.org/zh/
+* Vuex三个重要组成部分
+  * Actions：行为
+  * Mutations：修改
+  * State：状态（数据）
+  * 以上三个部分需要 store 的管理来引导这三个部分,dispatch和commit方法都在store上
+* 把数据交给Vuex管理就是交给Vuex里的State**对象**进行保管
+
+* **VueComponent** 可以调用 API： **dispatch**来执行**actions**里的方法，**actions**会将数据修改提交**（commit函数）**给**Mutations**，**mutations**再去修改**state**里的状态
+* **Dispatch('name',data)**接收两个参数
+  * name：actions中对应的函数名，这个函数会拿到传递过来的参数
+  * data：传递的参数
+* **commit("name",data):**接收两个参数
+  * name：mutations里的函数，这个函数会拿到两个东西
+    * state
+    * 传递过来的参数
+  * data：传递的参数
+* 只需要在mutations中直接state.数据修改就能引起state中数据的变化
+* 然后**state**数据的改变会让对应组件重新渲染，页面也就更新了
+
+**问题：为什么要多一步actions？**
+
+* 看官网图示可知，后端接口应该在这里对接，我们可以在这里做一些与后端对接的异步操作
+* vue实际上允许在组件里直接调用commit，跳过actions
+* actions相当于餐厅的服务员，mutations相当于后厨
+* actions中的代码可以供所有组件复用
+
+## 搭建Vuex环境
+
+* 安装 
+
+  ~~~bash
+  npm install vuex --save
+  ~~~
+
+* 然后去写自己的vuex
+
+  * src下新建store文件夹
+
+  * store文件夹下新建一个**index.js**文件，用于创建vuex中的核心store
+
+    ~~~js
+    //引入vuex
+    import Vuex from 'vuex'
+    
+    //准备actions：用于相应组件中的动作
+    const actions = {}
+    
+    //准备mutations：用于操作数据（state）
+    const mutations = {}
+    
+    //准备state：用于存储数据
+    const state = {}
+    
+    //创建store
+    const store = new Vuex.Store({
+        //写成对象简写形式
+        actions,
+        mutations,
+        state
+    })
+    
+    //向外暴露store
+    export default  store
+    ~~~
+
+* 需要在main.js引入我们自己写的store，由于脚手架解析import语句的原因（它会不管import在哪一行，它都会将import优先执行，import提升了），再加上我们要保证Vue.use(Vuex)在import store前执行，应该将Vue.use(Vuex)放入到store文件中
+
+* 所以index.js应该
+
+  ~~~js
+  //引入Vue
+  import Vue from 'vue'
+  //引入vuex
+  import Vuex from 'vuex'
+  
+  //使用vuex
+  Vue.use(Vuex)
+  
+  //准备actions：用于相应组件中的动作
+  const actions = {}
+  
+  //准备mutations：用于操作数据（state）
+  const mutations = {}
+  
+  //准备state：用于存储数据
+  const state = {}
+  
+  //创建store，向外暴露store
+  export default new Vuex.Store({
+      //写成对象简写形式
+      actions,
+      mutations,
+      state
+  })
+  ~~~
+
+* 然后main.js中引入store文件，并在vm上添加即可
+
+  ~~~js
+  import Vue from 'vue'
+  import App from './App.vue'
+  
+  Vue.config.productionTip = false
+  
+  //引入store
+  import store from './store'
+  
+  new Vue({
+    render: h => h(App),
+    store,
+  }).$mount('#app')
+  ~~~
+
+  
+
+**实例**：
+
+假如有一个求和组件，有一些求和要求，然后需要将和sum统一管理，也就是交给store管理
+
+* 将共享值sum放到vuex中
+
+  ~~~js
+  //准备state：用于存储数据
+  const state = {
+      sum: 0
+  }
+  ~~~
+
+* 然后组件中模板通过  **$store.state.sum** 读取到（不用加this，默认就是读取vc本身）
+
+  ~~~vue
+  <h2>当前和的值为： {{ $store.state.sum }} </h2>
+  ~~~
+
+* 整个组件是这样的
+
+  ~~~vue
+  <template>
+    <div>
+        <h2>当前和的值为： {{ this.$store.state.sum }} </h2>
+        <input type="text" v-model.number="n">
+        <br/><br/>
+        <button @click="up"> + </button>
+        <button @click="down"> - </button>
+        <button @click="upWhenEven"> 为偶数再加 </button>
+        <button @click="upAfter"> 延迟加 </button>
+    </div>
+  </template>
+  
+  <script>
+  export default {
+      name: 'demo',
+      data() {
+          return {
+              n: 2
+          }
+      },
+      methods: {
+          up(){
+  
+          },
+          down(){
+  
+          },
+          upWhenEven(){
+  
+          },
+          upAfter(){
+  
+          }
+  
+      },
+  }
+  </script>
+  
+  <style>
+  button{
+      margin-left: 20px;
+  }
+  </style>
+  ~~~
+
+* 然后编写我们的方法
+
+* 使用  this.$store.dispatch('action', payload)来调用actions中的方法
+
+  ~~~js
+  up(){
+     this.$store.dispatch('add', this.n)
+  },
+  ~~~
+
+* 所以actions中应该有add这个方法
+
+  * 它会接收两个参数
+    * context：上下文，一个mini 的store，里面有commit这个重要的函数
+      * 它也能拿到state，并且修改数也能成功，但是开发者工具检测不到这次动作！
+      * 这样就没有将actions和mutations分开的意义了
+    * data：传递过来的参数
+
+  ~~~js
+  //准备actions：用于相应组件中的动作
+  const actions = {
+      add(context,data){
+          console.log('actions中的add被调用');
+          console.log(context);
+          console.log(data);
+      }
+  }
+  ~~~
+
+* 然后编写好这个方法来实现需求，使用context.commit('MUTATIONS', payload)向state提交数据
+
+  ~~~js
+  add(context,data){
+          console.log('actions中的add被调用');
+          context.commit('ADD', data)
+  }
+  ~~~
+
+* 一般都将mutations中的方法名定义成全大写
+
+* 然后编写mutations
+
+  * ADD会接收两个参数
+    * state：就是store的state对象，因为要修改它的数据
+    * value，就是actions中传递过来的值
+
+  ~~~js
+  //准备mutations：用于操作数据（state）
+  const mutations = {
+      ADD(state,value){
+          console.log('mutations中的ADD被调用')
+          state.sum += value
+      }
+  }
+  ~~~
+
+* 然后再根据以上步骤完善我们的其他方法
+
+* 其中对于偶数的判断和定时器，放在actions中完成，能够让我们的组件看起来工整且简洁
+
+* 组件：
+
+  ~~~vue
+  <template>
+    <div>
+        <h2>当前和的值为： {{ this.$store.state.sum }} </h2>
+        <input type="text" v-model.number="n">
+        <br/><br/>
+        <button @click="up"> + </button>
+        <button @click="down"> - </button>
+        <button @click="upWhenEven"> 为偶数再加 </button>
+        <button @click="upAfter"> 延迟加 </button>
+    </div>
+  </template>
+  
+  <script>
+  export default {
+      name: 'demo',
+      data() {
+          return {
+              n: 2
+          }
+      },
+      methods: {
+          up(){
+              this.$store.dispatch('add', this.n)
+          },
+          down(){
+              this.$store.dispatch('dec', this.n)
+          },
+          upWhenEven(){
+              this.$store.dispatch('addWhenEven', this.n)
+          },
+          upAfter(){
+              this.$store.dispatch('upAfter', this.n)
+          }
+  
+      },
+  }
+  </script>
+  
+  <style>
+  button{
+      margin-left: 20px;
+  }
+  </style>
+  ~~~
+
+* store
+
+  * 我们并不是需要一个actions中的方法就要对应一个mutations中的方法
+
+  ~~~js
+  //引入Vue
+  import Vue from 'vue'
+  //引入vuex
+  import Vuex from 'vuex'
+  
+  //使用vuex
+  Vue.use(Vuex)
+  
+  //准备actions：用于相应组件中的动作
+  const actions = {
+      add(context,data){
+          context.commit('ADD', data)
+      },
+      dec(context,data){
+          context.commit('DEC', data)
+      },
+      addWhenEven(context,data){
+          if(data%2===0)context.commit('ADD', data)
+      },
+      upAfter(context,data){
+          setTimeout(() => {
+              context.commit('ADD', data)
+          }, 2000);
+      },
+  }
+  
+  //准备mutations：用于操作数据（state）
+  const mutations = {
+      ADD(state,value){
+          state.sum += value
+      },
+      DEC(state,value){
+          state.sum -= value
+      }
+  }
+  
+  //准备state：用于存储数据
+  const state = {
+      sum: 0
+  }
+  
+  //创建store，向外暴露store
+  export default new Vuex.Store({
+      //写成对象简写形式
+      actions,
+      mutations,
+      state
+  })
+  ~~~
+
+* 而且对于一些没有业务操作的数据可以绕过actions，组件中直接调用commit就可以了，但是注意方法名写的是mutstions中的方法
+
+  ~~~js
+  up(){
+      this.$store.commit('ADD', this.n)
+  },
+  ~~~
+
+## Vuex的开发者工具
+
+* Vuex的开发者工具就是vue的开发者工具，因为都是vue团队打造的
+* 点击工具的头部 计时器那个图标就是
+* 它会记录mutations中的动作
+* 可以查看每一次的动作，并且可以撤销某次动作（也会撤销掉依赖本次动作产生的数据的动作）
+* 也可以合并几次动作，将合并的动作作为基础数据
+
+## store中新的配置项getters
+
+* 除了三个重要的 actions，mutations，state外,还有一个**非必要**的配置项gettres
+
+* 它的存在类似于**计算属性**
+
+* 写配置，并加在vuex上
+
+  ~~~js
+  //配置getters,用于将state中的数据加工
+  const getters = {
+      bigSum(state){
+          return state.sum * 10
+      }
+  }
+  
+  //创建store，向外暴露store
+  export default new Vuex.Store({
+      //写成对象简写形式
+      actions,
+      mutations,
+      state,
+      getters
+  })
+  ~~~
+
+  它会接收到一个参数，**state**
+
+* 但是注意，并不是像计算属性那样，这个bigSum它不会放在state里，而是在getters里
+
+* 所以我们应该这样取到数据`$store.getters.bigSum`
+
+  ~~~vue
+  <h2>当前和的放大值为： {{ $store.getters.bigSum }} </h2>
+  ~~~
+
+  
