@@ -3482,4 +3482,474 @@ h2{
   <h2>当前和的放大值为： {{ $store.getters.bigSum }} </h2>
   ~~~
 
+
+## map
+
+**mapState、mapGetters、mapActions、mapMutations、**
+
+它可以帮助我们映射对应的数据和方法
+
+我们可以从vuex中拿到这四个函数
+
+~~~js
+import {mapState,mapGetters,mapActions,mapMutations} from 'vuex'
+~~~
+
+* 这四个函数能返回对应的值
+
+* ~~~js
+  mounted() {
+          const obj = mapState({sum:'sum',name:'name',msg:'msg'})
+          console.log(obj);
+      },
+  ~~~
+
+* 这里的obj是将 sum, name,msg三个**函数**
+
+* 那我们可以配合es6语法，将这三个函数放到计算属性里
+
+* ~~~js
+  computed:{
+         ... mapState({sum:'sum',name:'name',msg:'msg'})
+      },
+  ~~~
+
+* 那么，我们就不用写一长串在插值语法里了，直接写计算属性
+
+* ~~~vue
+  /* <h2>当前和的值为： {{ $store.state.sum }} </h2> */
+  改为
+  <h2>当前和的值为： {{ sum }} </h2>
+  ~~~
+
+* 这样就可以将mapState放到计算属性里来读取state里的数据
+
+* 而且上面这种`... mapState({sum:'sum',name:'name',msg:'msg'})`是对象写法，可以使用另一种精简写法`... mapState(['sum','name','msg'])`但是这样就必须让你想要读取的数据和你使用的计算属性同名
+
+* mapGetters、mapActions、mapMutations、同理
+
+* 注意使用 ... 展开参数时候，后面那个 , 要加
+
+* ~~~js
+  computed:{
+         ... mapState(['sum','name','msg']),//就是这里这个 逗号
+         ... mapGetters(['bigSum'])
+  },
+  ~~~
+
+  但是注意，方法使用这样获取后，要在调用的地方传递参数
+
+* ~~~js
+   methods: {
+          ...mapMutations({up:'ADD'}),
+          ...mapActions({down:'dec',upWhenEven:'addWhenEven',upAfter:'upAfter'}),
+   }
+  ~~~
+
+* ~~~vue
+  <button @click="up(n)"> + </button>
+  <button @click="down(n)"> - </button>
+  <button @click="upWhenEven(n)"> 为偶数再加 </button>
+  <button @click="upAfter(n)"> 延迟加 </button>
+  ~~~
+
+## Vuex模块化
+
+* 可以提高vuex的可维护性
+
+假如我们的vuex管理了很多方面的数据，代码一多起来，比较难维护
+
+~~~js
+//引入Vue
+import Vue from 'vue'
+//引入vuex
+import Vuex from 'vuex'
+
+//使用vuex
+Vue.use(Vuex)
+
+//准备actions：用于相应组件中的动作
+const actions = {
+    add(context,data){
+        context.commit('ADD', data)
+    },
+    dec(context,data){
+        context.commit('DEC', data)
+    },
+    addWhenEven(context,data){
+        if(data%2===0)context.commit('ADD', data)
+    },
+    upAfter(context,data){
+        setTimeout(() => {
+            context.commit('ADD', data)
+        }, 2000);
+    },
+    addPerson(context,data){
+        context.commit("ADDPERSON",data)
+    }
+}
+
+//准备mutations：用于操作数据（state）
+const mutations = {
+    ADD(state,value){
+        state.sum += value
+    },
+    DEC(state,value){
+        state.sum -= value
+    },
+    ADDPERSON(state,value){
+        state.persons.push(value)
+    }
+}
+
+//准备state：用于存储数据
+const state = {
+    sum: 0,
+    persons: [
+        {name: 'shishi',id:0},
+        {name: 'lisi',id:1},
+        {name: 'zhngsan',id:2},
+    ]
+}
+
+//配置getters,用于将state中的数据加工
+const getters = {
+    bigSum(state){
+        return state.sum * 10
+    }
+}
+
+//创建store，向外暴露store
+export default new Vuex.Store({
+    //写成对象简写形式
+    actions,
+    mutations,
+    state,
+    getters
+})
+~~~
+
+* 那么我们给它模块化一下
+
+* 将不同的方面提出做一个模块，他们都有同样的结构
+
+* ~~~js
+  //模块一的相关功能的配置
+  const sumOptions = {
+      actions:{},
+      mutations:{},
+      state:{},
+      getters:{}
+  }
   
+  //模块二的相关功能的配置
+  const personOptions = {
+      actions:{},
+      mutations:{},
+      state:{},
+      getters:{}
+  }
+  ~~~
+
+* 然后将不同的配置放在对应的模块里
+
+* 而且要开启命名空间  namespaced: true，为了之后好拿对应的vuex
+
+* ~~~js
+  //模块一的相关功能的配置
+  const sumOptions = {
+     namespaced: true,
+      actions:{
+          add(context,data){
+              context.commit('ADD', data)
+          },
+          dec(context,data){
+              context.commit('DEC', data)
+          },
+          addWhenEven(context,data){
+              if(data%2===0)context.commit('ADD', data)
+          },
+          upAfter(context,data){
+              setTimeout(() => {
+                  context.commit('ADD', data)
+              }, 2000);
+          },
+      },
+      mutations:{
+          ADD(state,value){
+              state.sum += value
+          },
+          DEC(state,value){
+              state.sum -= value
+          },
+      },
+      state:{
+          sum: 0,
+      },
+      getters:{
+          bigSum(state){
+              return state.sum * 10
+          }
+      }
+  }
+  
+  //模块二的相关功能的配置
+  const personOptions = {
+     namespaced: true,
+      actions:{
+          addPerson(context,data){
+              context.commit("ADDPERSON",data)
+          }
+      },
+      mutations:{
+          ADDPERSON(state,value){
+              state.persons.push(value)
+          }
+      },
+      state:{
+          persons: [
+              {name: 'shishi',id:0},
+              {name: 'lisi',id:1},
+              {name: 'zhngsan',id:2},
+          ]
+      },
+      getters:{}
+  }
+  ~~~
+
+* 这样 就有了两套vuex
+
+* 而且上面这两套配置可以写成两个文件，最后在index.js中引入就行（js模块化）
+
+* 然后将这两套vuex暴露出去，使用modules
+
+* ~~~js
+  //创建store，向外暴露store
+  export default new Vuex.Store({
+      modules:{
+          a:sumOptions,
+          b:personOptions
+      }
+  })
+  ~~~
+
+* 然后我们最好就使用原名，然后写成对象的简写形式
+
+* ~~~js
+  //创建store，向外暴露store
+  export default new Vuex.Store({
+      modules:{
+          sumOptions,
+          personOptions
+      }
+  })
+  ~~~
+
+* 然后在取数据的地方一定要指明了是那个对象的vuex，
+
+* 如果是使用 map取的数据，在里面加一个参数即可，指明是哪一个modules中的数据
+
+* ... mapState('sumOptions',['sum']),：第一个就是在vuex中暴露模块时候指定的模块名字，并且这样使用的话，moudules中一定要开启命名空间 **namespaced: true**
+
+* ~~~js
+  computed:{
+         ... mapState('sumOptions',['sum']),
+         ... mapGetters('sumOptions',['bigSum'])
+      },
+      methods: {
+          ...mapMutations('sumOptions',{up:'ADD'}),
+          ...mapActions('sumOptions',{down:'dec',upWhenEven:'addWhenEven',upAfter:'upAfter'}),
+      },
+  ~~~
+
+* 完整案例
+
+* 两个组件
+
+* ~~~vue
+  <template>
+    <div>
+        <h2>当前和的值为： {{ sum }} </h2>
+        <h2>当前和的放大值为： {{ bigSum }} </h2>
+        <input type="text" v-model.number="n">
+        <br/><br/>
+        <button @click="up(n)"> + </button>
+        <button @click="down(n)"> - </button>
+        <button @click="upWhenEven(n)"> 为偶数再加 </button>
+        <button @click="upAfter(n)"> 延迟加 </button>
+    </div>
+  </template>
+  
+  <script>
+  import {mapState,mapGetters,mapActions,mapMutations} from 'vuex'
+  export default {
+      name: 'demo',
+      data() {
+          return {
+              n: 2
+          }
+      },
+      mounted() {
+          const obj = mapGetters({bigSum:'bigSum'})
+          console.log(obj);
+      },
+      computed:{
+         ... mapState('sumOptions',['sum']),
+         ... mapGetters('sumOptions',['bigSum'])
+      },
+      methods: {
+          ...mapMutations('sumOptions',{up:'ADD'}),
+          ...mapActions('sumOptions',{down:'dec',upWhenEven:'addWhenEven',upAfter:'upAfter'}),
+      },
+  }
+  </script>
+  
+  <style>
+  button{
+      margin-left: 20px;
+  }
+  </style>
+  ~~~
+
+* ~~~vue
+  <template>
+    <div>
+        <span>id :  name</span>
+       <h3 v-for="(p, index) in persons" :key=index > {{ p.id }} {{ p.name }} </h3>
+  
+       <input type="text" v-model="name">
+       <button @click="addPerson({name,id:persons.length})">添加</button>
+    </div>
+  </template>
+  
+  <script>
+  import {mapState,mapActions} from 'vuex'
+  export default {
+      name:'list',
+      data() {
+          return {
+              name: ''
+          }
+      },
+      computed:{
+          ...mapState('personOptions',['persons'])
+      },
+      methods: {
+          ...mapActions('personOptions',['addPerson']),
+      },
+  }
+  </script>
+  
+  <style>
+  
+  </style>
+  ~~~
+
+* vuex的文件
+
+* ~~~js
+  //引入Vue
+  import Vue from 'vue'
+  //引入vuex
+  import Vuex from 'vuex'
+  
+  //使用vuex
+  Vue.use(Vuex)
+  
+  //模块一的相关功能的配置
+  const sumOptions = {
+      namespaced: true,
+      actions:{
+          add(context,data){
+              context.commit('ADD', data)
+          },
+          dec(context,data){
+              context.commit('DEC', data)
+          },
+          addWhenEven(context,data){
+              if(data%2===0)context.commit('ADD', data)
+          },
+          upAfter(context,data){
+              setTimeout(() => {
+                  context.commit('ADD', data)
+              }, 2000);
+          },
+      },
+      mutations:{
+          ADD(state,value){
+              state.sum += value
+          },
+          DEC(state,value){
+              state.sum -= value
+          },
+      },
+      state:{
+          sum: 0,
+      },
+      getters:{
+          bigSum(state){
+              return state.sum * 10
+          }
+      }
+  }
+  
+  //模块二的相关功能的配置
+  const personOptions = {
+      namespaced: true,
+      actions:{
+          addPerson(context,data){
+              context.commit("ADDPERSON",data)
+          }
+      },
+      mutations:{
+          ADDPERSON(state,value){
+              state.persons.push(value)
+          }
+      },
+      state:{
+          persons: [
+              {name: 'shishi',id:0},
+              {name: 'lisi',id:1},
+              {name: 'zhngsan',id:2},
+          ]
+      },
+      getters:{}
+  }
+  
+  //创建store，向外暴露store
+  export default new Vuex.Store({
+      modules:{
+          sumOptions,
+          personOptions
+      }
+  })
+  ~~~
+
+* 当然如果跳过actions直接写commit取改数据，写上面那种取数据的方法是不行的，（是指用代码直接操作 this.$store的时候，所有的map函数都能写上面那种形式）
+
+* 我们应该在  方法名参数改为  模块名字/方法名 `commit('sumOptions/ADD',data)`
+
+* / 表示它先找sumOptions模块，去里面找ADD方法
+
+* 而且getters里的分类也是这样写的，所以要用代码取getters里的数据应该这样写
+
+* ~~~js
+  this.$store.getters['sumOptions/bigSum']
+  //因为 . 后面跟‘变量’名，而这里是一个字符串，所以要用另一种取属性的方法 ['名']
+  ~~~
+
+* 也就是所有 直接操作 this.$store代码的，必须是  /  的形式
+
+# 第六章：路由 route
+
+路由是 route
+
+路由器是router
+
+编代码时候也要理解这两个单词
+
+## 简介：
+
+* 我们编写单页面应用来实现多个页面切换（页面没有跳转，是页面局部更新），避免以前多页面应用的来回跳转（页面会跳转）
+* 所以这个路由技术是非常常用和重要的
+
