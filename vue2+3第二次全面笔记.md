@@ -4151,3 +4151,449 @@ export default new Vuex.Store({
   </style>
   ~~~
 
+* 一般我们会将路由组件和一般组件分开，将路由组件放到pages（或views）文件夹下，一般组件放到components文件夹下
+
+* 路由组件在切出路径后默认被销毁
+* 路由组件因为参与了路由的配置。this上会多两个属性：
+  * $route: 你配置的对于对应组件的路由规则
+  * $router：你配置的路由器
+  * 不同组件的$route不同，但$router相同
+
+## 嵌套路由
+
+* 路由页面中又存在路由，也称多级路由
+
+实例：在上面这个例子中给路由页面page1里面再放三个小页面，s1,s2,s3
+
+* 三个s页面组件 subP1，subP2,subP3
+
+* ~~~vue
+  <template>
+    <div class="container">
+        这是页面一的子页面1
+    </div>
+  </template>
+  
+  <script>
+  export default {
+  
+  }
+  </script>
+  
+  <style scoped>
+  .container{
+      height: 400px;
+      background: rgb(143, 143, 175);
+  }
+  </style>
+  ~~~
+
+* 另两个同上
+
+* 然后在路由器中编写路由规则
+
+* 谁的子路由，就给谁加一条配置 children写法于其他路由规则一样
+
+* 比如这里p1的子路由，就写p1的children里
+
+  * 注意，里面的path不要再加 /  了，它会默认加，写了就不对了
+
+  * ~~~js
+    path:'/p1',
+    component: page1,
+    children:[
+        {
+            path: 's1',  //表示完整路劲为   /p1/s1
+            component:subP1
+        },
+        {
+            path: 's2',
+            component:subP2
+        },
+        {
+            path: 's3',
+            component:subP3
+        },
+    ]
+    ~~~
+
+  * 完整路由文件
+
+  * ~~~js
+    //用来创建整个应用的路由器
+    import Router from 'vue-router'
+    import Vue from 'vue'
+    
+    Vue.use(Router)
+    
+    //引入组件
+    import page1 from '../pages/page1'
+    import page2 from '../pages/page2'
+    import page3 from '../pages/page3'
+    import subP1 from '../pages/subP1'
+    import subP2 from '../pages/subP2'
+    import subP3 from '../pages/subP3'
+    
+    //创建一个路由器
+    export default new Router({
+        routes:[
+            {
+                path:'/p1',
+                component: page1,
+                children:[
+                    {
+                        path: 's1',
+                        component:subP1
+                    },
+                    {
+                        path: 's2',
+                        component:subP2
+                    },
+                    {
+                        path: 's3',
+                        component:subP3
+                    },
+                ]
+            },
+            {
+                path:'/p2',
+                component: page2
+            },
+            {
+                path:'/p3',
+                component: page3
+            },
+        ]
+    })
+    ~~~
+
+* 然后给需要路由控制的页面加上router-link 和 router-view，就与编写路由一样
+
+* 注意样式使用了bootstrap
+
+* 注意 这里的to 要完整带上父亲路径 **to="/p1/s1"**
+
+* ~~~vue
+  <template>
+    <div>
+        <h1>页面一</h1>
+          <div class="container">
+              <div class="row">
+                  <router-link to="/p1/s1" class="col-xs-2 tab">导航1</router-link>
+                  <router-link to="/p1/s2" class="col-xs-2 tab">导航2</router-link>
+                  <router-link to="/p1/s3" class="col-xs-2 tab">导航3</router-link>
+              </div>
+              <div class="row">
+                  <router-view class="col-xs-6"></router-view>
+              </div>
+          </div>
+    </div>
+  </template>
+  
+  <script>
+  export default {
+      name:'page1'
+  }
+  </script>
+  
+  <style scoped lang="less">
+  .tab{
+      height: 40px;
+      text-align: center;
+      line-height: 40px;
+      background: gray;
+      color: white;
+  
+      &:hover{
+          background: rgb(221, 215, 215);
+          color: black;
+      }
+  }
+  </style>
+  ~~~
+
+
+
+## query参数
+
+* 与ajax发请求时候的query参数基本一致
+
+* 这种传递参数的方式不需要去修改路由的配置
+
+* 用于父向子传递数据
+
+* 父：就像ajax请求时候带query参数一样使用
+
+* ~~~vue
+  <router-link to="/p1/s1?id=1&name='shishi'" class="col-xs-2 tab">导航1</router-link>
+  ~~~
+
+* 子：在自己this身上的 **$route**（注意不要写成router路由器）上接收query（是一个对象）参数
+
+* ~~~vue
+  <h3>我接受到传进来的query参数: {{ $route.query }}</h3>
+  ~~~
+
+* 如果我们要传的是自己的数据，而不是这样写死的字符串，就要 强制绑定 to 前加  ：冒号
+
+* 而且要注意，加了强制绑定之后，后面的值会作为js解析，所以需要重新写值，要用模板字符串（${变量}）去写混上js变量
+
+* 比如有以下数据
+
+* ~~~js
+  persons:[
+       {id:1,name:'shishi'},
+       {id:2,name:'李四'},
+       {id:3,name:'王五'},
+   ]
+  ~~~
+
+* 就要这样去写后面的值
+
+* ~~~vue
+  <router-link :to="`/p1/s1?id=${persons[1].id}&name=${persons[1].name}`" class="col-xs-2 tab">导航1</router-link>
+  ~~~
+
+* 如果觉得这样比较长，可以写成对象的写法，拆成两个配置 （path 和 query）
+
+* ~~~vue
+  <router-link class="col-xs-2 tab" :to="{
+      path: '/p1/s1',
+      query: persons[1]
+  }" 
+  >
+  导航1
+  </router-link>
+  ~~~
+
+## 命名路由
+
+* 我们可以在路由配置上给路由加name属性，名字可以随便起，建议语义化
+
+* ~~~js
+  path:'/p1',
+  name:'ppp1',
+  component: page1,
+  children:[
+      {
+          path: 's1',
+          name: 'sub1',
+          component:subP1
+      },
+      {
+          path: 's2',
+          name:'sub2',
+          component:subP2
+      },
+  ~~~
+
+* 然后我们在路由跳转的时候，就可以使用name来跳转
+
+* ~~~vue
+   <router-link class="col-xs-2 tab" :to="{
+     // path: '/p1/s1',
+     name:'sub1',
+      query: persons[1]
+  }" 
+  >
+  导航1
+  </router-link>
+  ~~~
+
+* 如果不是对象形式的话，前面强制绑定告诉它解析为name属性变量就行了
+
+* ~~~vue
+  <router-link :to="{name:'sub2'}" class="col-xs-2 tab">导航2</router-link>
+  ~~~
+
+## params参数
+
+* 与ajax里的params参数同理
+
+* 需要修改路由配置
+
+* 传参数时候的写法就是直接将参数拼接在后面 （使用/而不是query的？）
+
+* 比如传递  id为 1，name为 “shishi“的参数
+
+* ~~~vue
+  <router-link to="/p1/s1/1/name" class="col-xs-2 tab">导航1</router-link>
+  ~~~
+
+* 但是光这样是不行的，因为它会被识别成子路由路径去了,所以要修改路由配置
+
+* 加上占位符 `:属性名`
+
+* ~~~js
+  path: 's1/:id/:name',
+  name: 'sub1',
+  component:subP1
+  ~~~
+
+* 然后子组件去 this.$route.params上去
+
+* ~~~vue
+  <h3>我接受到传进来的params参数: {{ $route.params }}</h3>
+  ~~~
+
+* 同样的如果写变量的话，使用模板字符串
+
+* ~~~vue
+   <router-link :to="`/p1/s1/${persons[1].id}/${persons[1].name}`" class="col-xs-2 tab">导航1</router-link>
+  ~~~
+
+* 但是，如果是对象形式的话，不能使用path去指定路由，得用name去指定
+
+* ~~~vue
+  <router-link class="col-xs-2 tab" :to="{
+     // path: '/p1/s1',不可行
+     name:'sub1',
+      params: persons[1]
+  }" 
+  >
+  导航1
+  </router-link>
+  ~~~
+
+## props配置
+
+* 与组件的props一样，它接收外部传过来的参数
+
+* 首先要去修改配置项，加一个props配置项，谁接收，去给谁加
+
+* 第一种写法：值为对象,其中的k-v都会以props形式传进该组件
+
+* 但是数据写死了
+
+* ~~~js
+   {
+      path: 's2',
+      name:'sub2',
+      component:subP2,
+  
+      //第一种写法，值为对象,其中的k-v都会以props形式传进该组件
+      props:{a:1,b:”hello“}
+  },
+  ~~~
+
+* 组件里以props接收
+
+* ~~~vue
+  <template>
+    <div class="container">
+        这是页面一的子页面2
+        <h3>props接收到的参数 a:{{ a }},b:{{ b }}</h3>
+    </div>
+  </template>
+  
+  <script>
+  export default {
+    props: ['a','b']
+  }
+  </script>
+  
+  <style scoped>
+  .container{
+      height: 400px;
+      background: rgb(75, 190, 162);
+  }
+  </style>
+  ~~~
+
+* 第二种写法：值为布尔值，若为真，就会把该路由组件收到的params参数，以props的形式传给该组件
+
+* 只对params有效，query没用
+
+* ~~~js
+  {
+      path: 's1/:id/:name',
+      name: 'sub1',
+      component:subP1,
+  
+      //第二种写法：值为布尔值，若为真，就会把该路由组件收到的params参数，以props的形式传给该组件
+      props: true
+  },
+  ~~~
+
+* ~~~vue
+  <template>
+    <div class="container">
+        这是页面一的子页面1
+        <hr>
+        <!-- <h3>我接受到传进来的query参数: {{ $route.query }}</h3> -->
+        <h3>我接受到传进来的params参数: {{ $route.params }}</h3>
+        <h3>我接受到传进来的props参数: {{name }}</h3>
+    </div>
+  </template>
+  
+  <script>
+  export default {
+      props: ['id','name'],
+  }
+  </script>
+  ~~~
+
+* 第三种写法：值为函数,返回值以props的形式传给该组件
+
+* ~~~js
+  {
+      path: 's2',
+      name:'sub2',
+      component:subP2,
+  
+      //第一种写法，值为对象,其中的k-v都会以props形式传进该组件
+      // props:{a:1,b:"hello"}
+  
+      //第三种写法：值为函数,返回值以props的形式传给该组件
+      props: function () { 
+          return {id:1,name:'hh'}
+       }
+  },
+  ~~~
+
+* ~~~vue
+  <template>
+    <div class="container">
+        这是页面一的子页面2
+        <!-- <h3>props接收到的参数 a:{{ a }},b:{{ b }}</h3> -->
+        <h3>props接收到的参数 id:{{ id }},name:{{ name }}</h3>
+    </div>
+  </template>
+  
+  <script>
+  export default {
+    props: ['id','name']
+  }
+  </script>
+  ~~~
+
+* 而且你可以在这个函数里接收一个参数，就是 $route,这样数据就不用写死了
+
+* ~~~js
+  {
+      path: 's2',
+      name:'sub2',
+      component:subP2,
+  
+      //第一种写法，值为对象,其中的k-v都会以props形式传进该组件
+      // props:{a:1,b:"hello"}
+  
+      //第三种写法：值为函数,返回值以props的形式传给该组件
+      props: function ($route) { 
+          return {
+              id:$route.query.is,name:$route.query.name
+          }
+       }
+  },
+  ~~~
+
+* 这样就可以拿到query参数了，前提是你点击路由时候传query参数了
+
+* 配合es6的解构赋值和对象简写语法（这里是解构赋值的连续写法）
+
+* ~~~js
+  props({query:{id,name}}) { 
+     return {id,name}
+  }
+  ~~~
+
