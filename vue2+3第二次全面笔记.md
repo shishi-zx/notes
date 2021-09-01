@@ -4597,3 +4597,143 @@ export default new Vuex.Store({
   }
   ~~~
 
+## replace属性
+
+* 浏览器的历史记录是一个栈的结构（先进后出）
+
+* 路由使用  router-link 写的话，每次**点击**都会push一条历史记录到这个栈里
+
+* 但是使用replace，会替换，相当于  先pop出栈顶，在push进去新路径
+
+* 可以在router-link中加上 replace，什么都不加表示默认 push
+
+* ~~~vue
+  <router-link replace to="/p1/s3" class="col-xs-2 tab">导航3</router-link>
+  ~~~
+
+* 这样写了之后，浏览器的地址历史记录将回退不了上一条记录，（对于点击后）
+
+* 这两个属性方法都可以在 $router 上拿到，（在它的原型上）
+
+## 编程式路由导航
+
+* 也就是用代码去操作路由跳转（也就是不去点击 router-link）
+
+* 在$router的原型对象上可以拿到一些操作路由的方法
+
+  * push()、back()、replace()  ...
+
+* push():  以push方式跳转路由
+
+  * 它可以接收一个配置对象参数，这个对象就是 router-link对象形式写法的那个配置对象
+
+  ~~~js
+  console.log(this.$router);
+  alert(1)
+  this.$router.push({
+      path:'/p3',
+      query:{}
+  })
+  ~~~
+
+* replace(): 会替换掉上一条记录，浏览器回退回不到上一步这条记录（会跳过被替换掉的记录，不是回退不了）
+
+  * 用法和push一样
+
+    ~~~js
+    alert(1)
+            this.$router.replace({
+                path:'/p3',
+                query:{}
+            })
+    ~~~
+
+* back(): 相当于浏览器会退一步的功能
+
+  * 自然它也就用不着参数了
+
+  ~~~js
+  alert(1)
+  this.$router.back()
+  ~~~
+
+* forward(): 相当于浏览器前进一步的功能,（前提是得有能够前进的历史记录，他不是push，不用参数）
+
+* go(): 参数接收一个参数，是一个数字，正数表示往前几步，负数是后退几步
+
+  ~~~js
+  alert(1)
+  this.$router.go(-5)
+  ~~~
+
+
+
+## 缓存路由组件
+
+* 当我们切走页面时候，该组件会被销毁，所以上面的数据也没了
+
+* 比如组件里有一个输入框，我们输入东西后，切走了路由，再切回来，该输入框里的东西就没了，因为这个组件不是之前那个了，之前那个被销毁了，这个是新挂载的组件
+
+  ~~~vue
+  <template>
+    <div class="container">
+        这是页面一的子页面3
+        <input type="text">
+    </div>
+  </template>
+  ~~~
+
+* 但是我们可以缓存这个组件，不让它被销毁
+
+* 在 router-view（对应组件展示的地方）的地方用  标签 keep-alive包裹
+
+  ~~~vue
+  <keep-alive>
+      <router-view class="col-xs-6"></router-view>
+  </keep-alive>
+  ~~~
+
+* 但是如果这样写的话，所有在这个位置展示的路由都会被保存，而我们应该只保存想要保存的
+
+* 所以要加一个属性 include 值就是组件对应的名字（不是在路由里注册的那个名字）是组件里的名字
+
+  ~~~vue
+  <keep-alive include="sub3">
+      <router-view class="col-xs-6"></router-view>
+  </keep-alive>
+  ~~~
+
+* 如果要写多个组件，强制绑定写成数组就行了  
+
+  ~~~vue
+  <keep-alive :include="['p33','p1','p2','p3']">  
+      <router-view class="col-xs-6"></router-view>
+  </keep-alive>
+  ~~~
+
+
+
+## 两个新的生命周期函数
+
+* 是路由组件独有的两个周期函数
+  * activated(): 激活
+  * deactivated()：失活
+
+* 假如我们又要切走页面，但是又不想销毁页面，同时又得关闭一些操作，就需要用到这两个周期函数了
+
+* ~~~vue
+  <script>
+  export default {
+    name: 'p33',
+    activated() {
+      console.log("激活了");
+    },
+    deactivated() {
+      console.log("失活了");
+    },
+  }
+  </script>
+  ~~~
+
+* 那么切出时候，会触发deactivated() ，切进来时候触发activated()
+
