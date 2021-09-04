@@ -4470,7 +4470,7 @@ export default new Vuex.Store({
       path: 's2',
       name:'sub2',
       component:subP2,
-  
+    
       //第一种写法，值为对象,其中的k-v都会以props形式传进该组件
       props:{a:1,b:”hello“}
   },
@@ -4736,4 +4736,314 @@ export default new Vuex.Store({
   ~~~
 
 * 那么切出时候，会触发deactivated() ，切进来时候触发activated()
+
+## 路由守卫
+
+* 控制用户切换路由界面的权限
+* 应该在router中控制
+
+### 全局前置
+
+*   `.beforeEach()`
+
+* 初始化时候被调用
+* 每次路由切换时候调用
+
+例子：首先我们要接收到router实例，然后就行守卫控制，再暴露出去（每一个路由都**应该**加上name属性）
+
+~~~js
+//用来创建整个应用的路由器
+import Router from 'vue-router'
+import Vue from 'vue'
+
+Vue.use(Router)
+
+//引入组件
+import page1 from '../pages/page1'
+import page2 from '../pages/page2'
+import page3 from '../pages/page3'
+import subP1 from '../pages/subP1'
+import subP2 from '../pages/subP2'
+import subP3 from '../pages/subP3'
+
+//创建一个路由器
+const router = new Router({
+    routes:[
+        {
+            path:'/p1',
+            name:'ppp1',
+            component: page1,
+            children:[
+                {
+                    path: 's1/:id/:name',
+                    name: 'sub1',
+                    component:subP1,
+                },
+                {
+                    path: 's2',
+                    name:'sub2',
+                    component:subP2,
+                },
+                {
+                    path: 's3',
+                    name:'sub3',
+                    component:subP3
+                },
+            ]
+        },
+        {
+            name:'p2',
+            path:'/p2',
+            component: page2
+        },
+        {
+            name:'p3',
+            path:'/p3',
+            component: page3
+        },
+    ]
+})
+
+//全局前置路由守卫
+router.beforeEach((to, from, next) => {
+    // ${//to and from are Route Object,next() must be called to resolve the hook}
+    console.log('前置路由守卫调用');
+    
+})
+
+export default router
+~~~
+
+**router.beforeEach((to, from, next) => {${//to and from are Route Object,next() must be called to resolve the hook}})**
+
+* 里面的回调函数有三个参数
+
+  * to、from：路由的源和路由的目标
+  * next：放行回调函数
+
+* ~~~js
+  //全局前置路由守卫
+  router.beforeEach((to, from, next) => {
+      // ${//to and from are Route Object,next() must be called to resolve the hook}
+      console.log('前置路由守卫调用');
+      //执行是否放行的代码逻辑
+      next()
+      
+  })
+  
+  export default router
+  ~~~
+
+* 加上一些逻辑判断权限，比如
+
+* ~~~js
+  //全局前置路由守卫
+  router.beforeEach((to, from, next) => {
+      // ${//to and from are Route Object,next() must be called to resolve the hook}
+      console.log('前置路由守卫调用');
+      //执行是否放行的代码逻辑
+      if(to.name === 'p3'){
+          if(localStorage.getItem('name') ==='shishi')next()
+          else console.log('没有权限');
+      }
+      else{
+          next()
+      }
+  })
+  
+  export default router
+  ~~~
+
+* 当我们去localStorage中加上name后，发现才能跳转这个路由
+
+### meta属性
+
+* 发现对于`if(to.name === 'p3')`这一步显得比较不妥，如果组件一多，这些判断会变得很多
+
+* 所以我们需要配置路由的meta属性，这个对象里放的东西我们可以在to和from中拿到
+
+* 于是优化一下
+
+* 路由中，加上meta配置属性，然后加上我们自定义的属性在里面（不放在meta中，外面拿不到），表示需要权限控制
+
+* ~~~js
+  name:'p3',
+  path:'/p3',
+  component: page3,
+  meta: {
+      isAuth: true
+  }
+  ~~~
+
+* 然后守卫回调中，只对需要权限控制的路由进行权限控制
+
+* ~~~js
+  router.beforeEach((to, from, next) => {
+      // ${//to and from are Route Object,next() must be called to resolve the hook}
+      console.log('前置路由守卫调用');
+      //执行是否放行的代码逻辑
+      if(to.meta.isAuth){
+          if(localStorage.getItem('name') ==='shishi')next()
+          else console.log('没有权限');
+      }
+      else{
+          next()
+      }
+  })
+  ~~~
+
+  
+
+### 全局后置
+
+* `.afterEach()`
+
+* 初始化时候被调用
+
+* 每次路由切换后调用，所以它的回调也就没有next函数了
+
+* 它主要用于对页面路由跳转后的一些操作（这些操作的执行与跳转后的页面有关，比如修改网页的title）
+
+* ~~~js
+  //全局后置路由守卫
+  router.afterEach( route => {
+      // ${//these hooks do not get a next function and cannot affect the navigation}
+      console.log('后置路由守卫调用');
+      //执行是否放行的代码逻辑
+      console.log(route);
+      
+  })
+  ~~~
+
+* route就是源 （from）
+
+### 独享路由守卫
+
+* 假如我们只对单独一个的路由做路由守卫，我们可以直接在路由中加属性 beforeEnter
+
+* 这个属性是一个回调函数，与全局前置路由一摸一样
+
+* ~~~js
+  name:'p2',
+  path:'/p2',
+  component: page2,
+  beforeEnter: (to,from,next)=>{
+      if(localStorage.getItem('name') ==='shishi')next()
+      else console.log('没有权限');
+  }
+  ~~~
+
+* 它没有 afterEnter，但是它可以和全局后置守卫一起使用
+
+
+
+### 组件内路由守卫
+
+* 它是在组件里配置路由守卫
+
+* beforeRouteEnter (to, from, next) ： **通过路由规则**进入组件时候调用
+* beforeRouteLeave (to, from, next) ：   **通过路由规则**离开组件时候调用
+* 注意 通过路由规则
+  * 也就是历史回退不是路由规则
+  * 使用组件标签进入不是路由规则
+  * 使用router-link进入才是
+* 这两与全局路由守卫不一样
+
+* ~~~vue
+  <template>
+    <div>
+        <h1>页面三</h1>
+    </div>
+  </template>
+  
+  <script>
+  export default {
+   name:'page3',
+   beforeRouteEnter (to, from, next) {
+     // 通过路由规则进入组件时候调用
+   },
+   beforeRouteLeave (to, from, next) {
+     // 通过路由规则离开组件时候调用
+   }
+  }
+  </script>
+  ~~~
+
+* 同样需要 next放行才会展示页面和路径切换成功
+
+* 而且如果离开时候不放行是切不走组件的
+
+* ~~~vue
+  <script>
+  export default {
+   name:'page3',
+   beforeRouteEnter (to, from, next) {
+     // 通过路由规则进入组件时候调用
+     console.log('beforeRouteEnter');
+     next()
+   },
+   beforeRouteLeave (to, from, next) {
+     // 通过路由规则离开组件时候调用
+     console.log('beforeRouteLeave');
+     next()
+   }
+  }
+  </script>
+  ~~~
+
+* 所以这两方法必须同时出现
+
+## history模式与hash模式
+
+* 使用路由可以发现浏览器地址栏路由的路径是以  #  开头的，从 # 开始一直到后面的东西都算作hash值
+
+  * 它的特点就是不会随着http请求发给服务器
+
+* 因为默认开启的是hash模式，我们可以修改模式 **mode**
+
+* ~~~js
+  //创建一个路由器
+  const router = new Router({
+      //开启history模式
+      mode: 'history',
+      routes:[
+          {
+              path:'/p1',
+              name:'ppp1',
+              component: page1,
+              children:[
+                
+        ......
+  })
+  ~~~
+
+* 这样修改后，浏览器地址栏就不会出现 # 了
+
+* 但是 # 的兼容性比 history模式 略好一点（不多）
+
+  * 但是在项目上线时候是有区别的
+  * 将项目打包后放到服务器的资源文件夹下后：
+    * history模式中。在某个路由页面的时候，点击浏览器刷新时候，会 404（因为会将后面的路由路径带到请求路径中，服务器没有）
+    * hash模式，没有该问题（因为hash值不会带到请求路径中）
+  * 但是一般都用history模式，因为比较美观，然后去解决404问题（需要后端配合）
+  * 对于nodejs中，有一个中间件专门解决该问题
+    * `connect-history-api-fallback`
+    * 去npm官网搜索用法
+    * 它必须在服务器使用静态资源语句之前   引入之后`app.use(xx)`
+
+# 第七章：Vue UI 组件库
+
+## 移动端常用
+
+* Vant : https://youzan.github.io/vant
+* Cube UI :  https://didi.github.io/cube-ui 
+* Mint UI : https://mint-ui.github.io
+
+
+
+## PC端常用UI组件库
+
+* Element-UI(基于Vue) ： https://element.eleme.cn
+  * 它可以按需引入，减小体积
+* IView UI : https://www.iviewui.com
 
