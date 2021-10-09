@@ -236,8 +236,9 @@ Object.defineProperty(dog,"num",{
 
 一个简单的数据代理，操作obj_2来代理obj_1
 
-~~~html
-<script>        let obj_1 = {a:100}        let obj_2 = {b:200}        Object.defineProperty(obj_2,'a',{             get(){                return obj_1.a            },            set(value){                obj_1.a = value            }         })    </script>
+~~~vue
+<script>
+  let obj_1 = {a:100}        let obj_2 = {b:200}        Object.defineProperty(obj_2,'a',{             get(){                return obj_1.a            },            set(value){                obj_1.a = value            }         })    </script>
 ~~~
 
 控制输入输出如下
@@ -496,7 +497,9 @@ vm.$watch('value',{             immediate: true,            //当value发生改�
 ### 监视多层次的属性
 
 ~~~html
-<body>    <div id="app">        <h1>a : {{numbers.a}}</h1>        <button @click='numbers.a++'>a++</button>    </div>    <script src="../node_modules/vue/dist/vue.js"></script>    <script>        let vm = new Vue({           el: '#app',           data () {              return {                  numbers: {                      a: 1,                      b: 2                  }              }           },           watch: {             'numbers.a' : {                  handler(){                    console.log('a 变了');                  }              }           }        })    </script></body>
+<body>    <div id="app">   
+<h1>a : {{numbers.a}}</h1>      
+<button @click='numbers.a++'>a++</button>    </div>    <script src="../node_modules/vue/dist/vue.js"></script>    <script>        let vm = new Vue({           el: '#app',           data () {              return {                  numbers: {                      a: 1,                      b: 2                  }              }           },           watch: {             'numbers.a' : {                  handler(){                    console.log('a 变了');                  }              }           }        })    </script></body>
 ~~~
 
 * 注意number.a写成字符串，加上引号，表示一个属性名（即要监视的属性）
