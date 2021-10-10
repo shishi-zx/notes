@@ -683,3 +683,195 @@ delete a // 报错：Delete of an unqualified identifier in strict mode.
 ## 高阶函数
 
 * 高阶函数是对其他函数进行操作的函数，它**接受函数作为参数**或将**函数作为返回值**输出
+
+# 四 闭包
+
+* 闭包（closure）指有权访问另一个函数作用域中变量的**函数**：一个作用域可以访问另外一个函数内部的局部变量
+
+```js
+//闭包（closure）指有权访问另一个函数作用域中变量的   函数
+// fun 的函数作用域访问了另外一个函数fn里面的局部变量num
+function fn() {
+    let num = 10
+    function fun() {
+        console.log(num);
+    }
+    fun()
+}
+fn()
+//fn 就是一个闭包函数
+```
+
+* 稍微修改一下就能是实现fn外部的作用域可以访问fn内部的局部变量
+
+```js
+function fn() {
+    let num = 10
+    function fun() {
+        console.log(num);
+    }
+    return fun;
+}
+let f = fn()
+f()
+```
+
+* 闭包的主要作用就是延申了变量的作用范围，他使得fn函数调用结束后，内部的作用域不会立即销毁，因为num变量等着f调用
+
+# 五 深拷贝和浅拷贝
+
+1. 浅拷贝只是拷贝一层，更深层次对象级别的只拷贝引用
+2. 深拷贝拷贝多层，每一级的数据都会拷贝
+
+## 浅拷贝：
+
+```js
+let obj = {
+    id: 1,
+    name: 'shishi',
+    msg: {
+        say: 'hh'
+    }
+}
+let copy = {}
+for(let item in obj){
+    copy[item] = obj[item]
+}
+console.log(copy);//{ id: 1, name: 'shishi', msg: { say: 'hh' } }
+copy.msg.say = '被改了'
+console.log(obj);//{ id: 1, name: 'shishi', msg: { say: '被改了' } }
+```
+
+es6新增方法 实现浅拷贝：
+
+```js
+let copy2 = {}
+Object.assign(copy2,obj)
+console.log(copy2);
+```
+
+## 深拷贝：
+
+思路：对复杂数据类型来说，用函数递归来做深拷贝
+
+```js
+//封装深拷贝函数
+function deepCopy(target,obj){
+    for (const key in obj) {
+        //判断属性值是那种数据类型，是否需要递归拷贝
+        let item = obj[key];
+        if(item instanceof Array){
+            //数组是复杂数据类型，进行递归赋值
+            target[key] = []
+            deepCopy(target[key],item)
+        }else if(item instanceof Object){
+            //数组放在前面判断是因为数组属于object
+            target[key] = {}
+            deepCopy(target[key],item)
+        }else{
+            //简单数据类型
+            target[key] = item
+        }
+    }
+}
+let obj = {
+    id: 1,
+    name: 'shishi',
+    msg: {
+        say: 'hh'
+    },
+    foods: ['apple','banana']
+}
+let copy = {}
+deepCopy(copy,obj)
+console.log(copy);
+```
+
+
+
+# 六 正则表达式
+
+* 用于匹配字符串中字符组合的模式，在JavaScript中，正则表达式是作为对象存在的
+
+## 创建正则表达式
+
+1. RegExp 类
+
+   ```js
+   let regexp = new RegExp(/12ab/)
+   console.log(regexp);//    /12ab/
+   ```
+
+2. 字面量
+
+   ```js
+   let regexp2 = /34cd/
+   console.log(regexp2);///34cd/
+   ```
+
+## 测试正则表达式
+
+* test()正则表达式方法，用于检测字符串是否符合该规则，该对象会返回true或者false，其参数是测试字符串
+
+  ```js
+  let rg = /12ab/
+  console.log(rg.test('12ab'));//true
+  console.log(rg.test('12abffffff'));//true
+  console.log(rg.test('124'));//false
+  ```
+
+## 特殊字符
+
+* 正则表达式可以使用特殊字符来代表特殊的意义
+
+### 边界符
+
+| 边界符 | 说明       |
+| ------ | ---------- |
+| ^      | 以什么开头 |
+| $      | 以什么结束 |
+
+```js
+let rg = /^ab/  //以ab开头
+let rg2 = /ba$/ //以ba结束
+
+console.log(rg.test('abc'));//true
+console.log(rg.test('babc'));//false
+console.log(rg2.test('baba'));//true
+console.log(rg2.test('babc'));//false
+
+let rg3 = /^abc$/  //精确匹配，只能是abc
+console.log(rg3.test('abc'));//true
+console.log(rg3.test('abcabcccc'));//false
+```
+
+### 字符类
+
+| 字符类 | 说明                                                  |
+| ------ | ----------------------------------------------------- |
+| []     | 表示有一系列字符可供选择，只要中一个就行              |
+| [-]    | [] 内部加 - 表示范围                                  |
+| [^]    | [] 内部加 ^ 表示取反，区别于边界符（边界符^在[]外边） |
+
+```js
+let rg = /[abc]/  //abc任有一个就返回true
+console.log(rg.test('fgbfd')); //true
+console.log(rg.test('dgbaff')); //true
+
+let rg2 = /[a-e]/
+console.log(rg2.test('yjhn'));//false
+console.log(rg2.test('ycn'));//true  c在a-e的范围里
+
+let rg3 = /^[^0-9]$/ //表示不能是数字
+console.log(rg3.test('4'));//false
+console.log(rg3.test('a'));//true
+```
+
+* 一个常用组合: 只能是26个字符，大小写，和9个数字
+
+```js
+let rg3 = /^[a-zA-Z0-9]$/
+```
+
+
+
