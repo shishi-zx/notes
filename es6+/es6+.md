@@ -621,3 +621,65 @@ fn4(4,5)
 * 定时器函数: setTimeout(),自己会调用
 * 立即执行函数 :（functionBody）()  ： 它的this 和定时器的this都是指向window（调用者）
 
+## 严格模式
+
+* js提供了了严格模式（strict mode）
+* 严格模式在IE10以上的版本的浏览器中才会被支持，旧版本会被忽略
+* 严格模式对正常的的JavaScript语义做了一些更改：
+  * 消除了JavaScript语法的一些不合理，不严谨的地方
+  * 消除代码运行的一些不安全之处
+  * 提高编译器效率，增加运行速度
+  * 禁止了在ESMAScript的未来版本中可能会定义的一些语法，为新版本的JavaScript做好铺垫，比如一些保留字：class，enum，export，extends，import，super
+
+### 开启模式
+
+1. 为脚本开启严格模式
+
+   * 为整个脚本文件开启严格模式，需要在所有语句之前放一个特定的语句“use strict”；或 （‘use strict’；）
+
+   ~~~js
+   'use strict';
+   //下面的js代码就会按照严格模式来执行代码
+   a = 10//因为开启了严格模式，这里会报错
+   console.log(a)
+   ~~~
+
+2. 为函数单独开启严格模式
+
+   * 要给某个函数开启严格模式，需要把 语句放在函数体所有语句之前
+
+   ~~~js
+   a = 10 
+   console.log(a);
+   
+   function fn (){
+       'use strict'
+       let b = 10
+       console.log(b)
+   }
+   
+   fn()
+   ~~~
+
+   
+
+### 严格模式的变化
+
+1. 在正常模式中，如果一个变量没有声明就赋值，默认是全局变量。严格模式禁止这种做法
+2. 严禁删除已经声明的变量
+
+```js
+'use strict'
+let a = 10
+console.log(a);
+delete a // 报错：Delete of an unqualified identifier in strict mode.
+```
+
+3. 严格模式下全局作用域的this的不在指向window对象，而是undefined，所以构造函数不加new当普通函数调用也会报错，构造函数的this指向出错了，所以必须使用new关键字来调用构造函数，但是定时器的this还是指向window，没有受到影响
+4. 函数变化：
+   1. 函数不能有重名的参数
+   2. 函数必须声明在顶层，新版本的JavaScript会引入“块级作用域”（ES6中已经引入了），不允许在非函数的代码块中声明函数，**比如if语句中不能声明，for语句中不能声明**
+
+## 高阶函数
+
+* 高阶函数是对其他函数进行操作的函数，它**接受函数作为参数**或将**函数作为返回值**输出
