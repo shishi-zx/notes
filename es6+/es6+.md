@@ -1,3 +1,5 @@
+* **补充**和记录一些es6的新语法，包括部分es5的补充知识
+
 # 一 类
 
 在es6中新增加了类的概念，可以使用class关键字声明一个类，之后以这个类来实例化对象
@@ -871,6 +873,144 @@ console.log(rg3.test('a'));//true
 
 ```js
 let rg3 = /^[a-zA-Z0-9]$/
+```
+
+
+
+## 量词符
+
+* 用来设定某个模式出现的次数
+
+| 量词  | 说明                             |
+| ----- | -------------------------------- |
+| *     | 重复0次或者更多次                |
+| +     | 重复一次或更多次                 |
+| ？    | 重复0次或一次                    |
+| {n}   | 重复n次                          |
+| {n,}  | 重复n次或者更多次                |
+| {n,m} | 重复n到m次  注意不要在中间加空格 |
+
+```js
+let reg = /a*/
+console.log(reg.test(''));//true
+console.log(reg.test('aaaa'));//true
+
+let reg2 = /a+/
+console.log(reg2.test(''));//false
+console.log(reg2.test('aaaa'));//true
+
+let reg3 = /a?/
+console.log(reg3.test(''));//true
+console.log(reg3.test('a'));//true
+console.log(reg3.test('aaaa'));//true
+
+let reg4 = /^a{2}$/
+console.log(reg4.test(''));//false
+console.log(reg4.test('aa'));//true
+console.log(reg4.test('aaaa'));//false  不加$限制则为true
+console.log(reg4.test('a'));//false
+
+let reg5 = /^a{2,}$/
+console.log(reg5.test(''));//false
+console.log(reg5.test('aa'));//true
+console.log(reg5.test('aaaa'));//true  
+console.log(reg5.test('a'));//false
+
+let reg6 = /^a{2,5}$/
+console.log(reg6.test('aa'));//true
+console.log(reg6.test('aaaaaaaa'));//false  
+console.log(reg6.test('aaaa'));//true
+```
+
+* 菜鸟工具测试正则表达式：https://c.runoob.com/
+
+## 预定义类
+
+* 指某些常见模式的简写方式
+
+| 预定类 | 说明                               |
+| ------ | ---------------------------------- |
+| \d     | 匹配0-9之间的任一数字，相当于[0-9] |
+| \D     | 上一行效果取反，相当于`[^0-9]`     |
+| \w     | 相当于[a-zA-Z0-9]                  |
+| \W     | 相当于`[^a-zA-Z0-9]`               |
+| \s     | 匹配空格，相当于[\t\r\n\v\f]       |
+| \S     | 匹配非空格，相当于`[^\t\r\n\v\f]`  |
+
+## 正则替换
+
+* replace() 方法可以实现替换字符串的操作，用来替换的参数可以是一个字符串或者是一个正则表达式
+* `str.replace(reg,newstr)`
+
+```js
+let str = 'shishi_shuke'
+//字符串替换
+let nstr = str.replace('shishi','beita')
+console.log(nstr);//beita_shuke
+
+//正则替换
+let nstr2 = str.replace(/(shi){2}/,'luffy')
+console.log(nstr2);//luffy_shuke
+```
+
+### 正则表达式的参数
+
+```js
+/表达式/[switch]
+```
+
+* switch(或称为修饰符)：匹配模式
+  * g：全局匹配
+  * i：忽略大小写
+  * gi：两个模式都有
+
+```js
+//  g,i
+let nstr3 = str.replace(/(shi)/,'luffy')
+let nstr4 = str.replace(/(shi)/g,'luffy')
+console.log(nstr3);//luffyshi_shuke
+console.log(nstr4);//luffyluffy_shuke
+```
+
+# es6
+
+## 解构赋值
+
+### 数组解构
+
+* 允许从数组中一一对应取值
+
+```js
+let arr = [1,2,3]
+let [n1,n2,n3] = arr
+console.log(n1);//1
+console.log(n2);//2
+console.log(n3);//3
+```
+
+* 如果解构不成功，对应undefined
+
+```js
+let arr = [1,2,3]
+let [n1,n2,n3,m] = arr
+console.log(n1);//1
+console.log(n2);//2
+console.log(n3);//3
+console.log(m);//undefined
+```
+
+### 对象解构
+
+* 允许按照一定模式，从数组或者对象中提取值
+* 是一种属性匹配，所以名字必须一样
+
+```js
+let obj = {id: 2,uname:'shishi'}
+let {uname,id,age} = obj
+console.log(id,uname);//2 shishi
+console.log(age);//undefined
+let {n,m,i} = obj
+console.log(n);//undefined
 ```
 
 
