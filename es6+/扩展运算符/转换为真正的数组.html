@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <div>1</div>
+    <div>2</div>
+    <div>3</div>
+    <div>4</div>
+    <div>5</div>
+    <script>
+        let div_objs = document.getElementsByTagName('div')
+        console.log(div_objs);//浏览器控制台中可以看到是一个伪数组.看原型
+        let divs = [...div_objs]
+        console.log(divs);// 是一个真正的数组，原型指向 Array
+    </script>
+</body>
+</html>

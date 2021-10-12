@@ -1013,5 +1013,246 @@ let {n,m,i} = obj
 console.log(n);//undefined
 ```
 
+## 剩余参数
 
+* 剩余参数语法允许我们将一个不定数量的参数表示为一个数组
+* 语法： 使用三个点`...变量名`
+
+```js
+let sum = function(n1,n2,...args){
+    console.log(n1,n2);
+    console.log(args);
+}
+
+sum(1,2,3,4,5,6)//1 2
+                //[ 3, 4, 5, 6 ]
+sum(1,2)//1 2
+        //[]
+```
+
+* 注意箭头函数没有arguments参数，所以要使用这个剩余参数来接受了
+
+```js
+let sum = (...args) => {
+    let n = 0
+    args.forEach((item)=>{
+        n += item
+    })
+    return n
+}
+console.log(sum(1,2,3,4));//10
+```
+
+* 剩余参数配合解构赋值使用
+
+```js
+let arr = ['luffy','zuoluo','black']
+let [p1,...p2] = arr
+console.log(p1);// luffy
+console.log(p2);// ['zuoluo','black']
+```
+
+
+
+## 扩展运算符
+
+* 与剩余参数相反，它将数组或者对象转为用逗号分隔的**参数序列**
+* 也是用 三个点 `...要扩展的对象`表示
+
+```js
+let arr = [1,2,3]
+console.log(...arr)// 1 2 3
+console.log(arr)// [ 1, 2, 3 ]
+//...arr 等同于 1,2,3
+console.log(1,2,3);//1,2,3
+```
+
+* 可以利用它来合并数组
+
+```js
+let arr1 = [1,2,3]
+let arr2 = [3,4,5]
+let narr = [...arr1,...arr2]
+console.log(narr);//[ 1, 2, 3, 3, 4, 5 ]
+
+//或者
+arr1.push(...arr2)
+console.log(arr1);//[ 1, 2, 3, 3, 4, 5 ]
+```
+
+* 可以利用扩展运算符将类数组和伪数组转换为真正的数组，这样就能使用数组的方法来操作该对象
+
+```html
+<body>
+    <div>1</div>
+    <div>2</div>
+    <div>3</div>
+    <div>4</div>
+    <div>5</div>
+    <script>
+        let div_objs = document.getElementsByTagName('div')
+        console.log(div_objs);//浏览器控制台中可以看到是一个伪数组.看原型
+        let divs = [...div_objs]
+        console.log(divs);// 是一个真正的数组，原型指向 Array
+    </script>
+</body>
+```
+
+## Array的扩展方法
+
+### Array.from()
+
+* 将类数组或可遍历对象转换为真正的数组
+
+```js
+let arrayLike = {
+    "0": "luffy",
+    "1": "monkey",
+    "2": "black",
+    "length": 3
+}
+console.log(arrayLike);//{ '0': 'luffy', '1': 'monkey', '2': 'black', length: 3 } 是一个对象
+let arr = Array.from(arrayLike)
+console.log(arr);//[ 'luffy', 'monkey', 'black' ]  是一个数组
+```
+
+* 他还接受第二个参数，类似于 数组的 map方法，对值就行操作后再返回
+
+```js
+let arrayLike = {
+    "0": "luffy",
+    "1": "monkey",
+    "2": "black",
+    "length": 3
+}
+let arr2 = Array.from(arrayLike, (item)=>item += ' hh')
+console.log(arr2);//[ 'luffy hh', 'monkey hh', 'black hh' ]
+```
+
+### 实例方法： .find()
+
+* 用于找出数组中**第一个**符合条件的数组成员，如果没有找到返回undefined
+
+```js
+let arr = [
+    {
+        id: 1,
+        name: 'shishi'
+    },
+    {
+        id: 2,
+        name: 'luffy'
+    },
+    {
+        id: 3,
+        name: 'monn'
+    }
+]
+let p = arr.find((item) => {
+    return item.id == 1
+})
+console.log(p);//{ id: 1, name: 'shishi' }
+```
+
+### 实例方法： .findIndex()
+
+* 用于找出数组中**第一个**符合条件的数组成员的下标，如果没有找到返回 -1
+
+```js
+let arr = [
+    {
+        id: 1,
+        name: 'shishi'
+    },
+    {
+        id: 2,
+        name: 'luffy'
+    },
+    {
+        id: 3,
+        name: 'monn'
+    }
+]
+let index = arr.findIndex((item) => {
+    return item.name == 'luffy'
+})
+console.log(index);//1
+```
+
+### 实例方法： include()
+
+* 表示某个数组是否包含给定的值，返回布尔值(es6之前使用indexOf()来实现)
+
+```js
+let arr1 = [1,2,3]
+console.log( arr1.includes(2) );//true
+console.log( arr1.includes(6) );//false
+```
+
+## String 的扩展方法
+
+### 实例方法： startsWith()   ,   endsWith()
+
+* 表示参数字符串是否在字符串的开头或者结尾，返回布尔值
+
+```js
+let str = 'luffy is the King'
+console.log(str.startsWith('luf'));//true
+console.log(str.endsWith('ng'));//true
+```
+
+### 实例方法： repeat()
+
+* 表示将源字符串重复n次，返回一个新字符串
+
+```js
+let str = 'hello '
+console.log(str.repeat(4));//hello hello hello hello 
+```
+
+## Set数据结构
+
+* 它类似于数组，但是成员都是唯一的，**没有重复的值**
+
+* Set 是一个构造函数，用来生成Set数据结构，可以接受一个数组参数来初始化
+* 没有length属性，使用size属性代替
+
+```js
+//let s = new Set();
+let s = new Set([1,2,3,3,4,4,4,5]);
+console.log(s);//Set(5) { 1, 2, 3, 4, 5 }
+console.log(s.size);//5
+```
+
+* 数组去重
+
+```js
+//数组去重
+let arr = [1,2,3,3,3,3,3,3,4]
+let arr2 = [...(new Set(arr))]
+console.log(arr2);//[ 1, 2, 3, 4 ]
+```
+
+### Set的实例方法
+
+* add(value): 添加值，返回Set结构本身
+* delete(value): 删除某个值，返回布尔值
+* has(value): 返回布尔值，检测是否包含某个值
+* clear(): 清空所有成员，没有返回值
+
+### Set数据结构的遍历
+
+* 与数组一样拥有 forEach()方法
+
+```js
+let s = new Set([1,2,3,3,4,4,4,5]);
+s.forEach((item,i,s) =>{
+    console.log(item,i,s);
+})
+// 1 1 Set(5) { 1, 2, 3, 4, 5 }
+// 2 2 Set(5) { 1, 2, 3, 4, 5 }
+// 3 3 Set(5) { 1, 2, 3, 4, 5 }
+// 4 4 Set(5) { 1, 2, 3, 4, 5 }
+// 5 5 Set(5) { 1, 2, 3, 4, 5 }
+```
 
