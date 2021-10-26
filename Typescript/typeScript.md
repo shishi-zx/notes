@@ -270,3 +270,194 @@ let l: myType2
 * 语法：
   * 变量 as 类型 ：  `str as number`
   * <类型>变量：  `<number>str`
+
+# 编译选项
+
+* 如果在每次修改ts文件后自动编译为js文件
+
+  * 方式一
+
+    ```bash
+    tsc 06_编译选项.ts  -w
+    
+    //可以开启编译模式，就不需要每次修改完之后再去重新编译了,命令行会卡住状态，修改完后有提示变化
+    
+    //只针对当前文件，所以如果同时修改多个文件，需要开启多个控制台
+    ```
+
+  * 方式二
+
+    ```typescript
+    // tsc 命令  再加一个配置文件 tsconfig.json
+    
+    // 它可以自动编译所有tsc文件(配置文件什么也不写默认就是这个效果)
+    
+    // 然后  tsc -w  会监视所有ts文件
+    ```
+
+## ts配置文件： tsconfig.json
+
+* 是ts编译器的配置文件，ts编译器可以根据它的信息来对代码进行编译
+* 这个json文件可以写注释
+
+## 编译选项
+
+### include
+
+* 用来指定哪些ts文件需要被编译
+
+```json
+{
+    "include": [
+        //"./src/**/*"  //表示只编译src目录下任意文件夹下的任意文件
+        "06_编译选项.ts"
+    ]
+}
+```
+
+* `*`表示任意文件，`**`表示任意文件夹
+
+### exclude
+
+* 于include相反，不包含那些文件
+
+* 默认值为:
+
+  ```json
+  ["node_modules","bower_components","jspm_packages"]
+  ```
+
+### extends
+
+* 指定继承的配置文件
+
+### files
+
+* 指定被编译文件的列表, 与include差不多，files主要是文件少时候可以用
+
+  ```json
+  "files": [
+      "index.ts",
+      "haha.ts",
+      "binder.ts"
+  ]
+  ```
+
+  
+
+### compilerOptions
+
+* 编译器的配置，很重要
+* 有很多子选项
+
+#### target： 
+
+* 指定被编译成哪个版本的es版本
+
+```json
+"compilerOptions": {
+     "target": "ES6",//默认为es3
+}
+```
+
+#### module
+
+* 指定导入的模块使用哪个es版本编译, 和target一个意思，只不过一个是本文件，一个是引入的文件
+
+```json
+"compilerOptions": {
+        "target": "ES6",//默认为es3
+        "module": "ES6",
+}
+```
+
+#### lib
+
+* 指定项目中要使用的库
+* 一般都不需要去改这个选项
+
+```json 
+"lib": ["dom"],//指定我们要用到DOM库
+```
+
+#### outDir
+
+* 指定编译后的文件放到哪个文件夹，默认放在一起
+
+```json
+"compilerOptions": {
+    "target": "ES6",//默认为es3
+    "module": "ES2015",
+    //"lib": ["dom"],//指定我们要用到DOM库
+    "outDir": "./dist",
+}
+```
+
+#### outFile
+
+* 可以用来将代码合并为一个文件
+
+```json
+"compilerOptions": {
+    "target": "ES6",//默认为es3
+    "module": "System",
+    //"lib": ["dom"],//指定我们要用到DOM库
+    // "outDir": "./dist",
+    "outFile": "./dist/app.js",//如果要合并模块的话，模块必须规范，module必须是 System 或 amd
+}
+```
+
+#### allowJs, checkJs
+
+* 设置是否编译 js文件（默认为false）
+* 设置是否检查js语法（像ts一样）（默认为false）
+
+```json
+"compilerOptions": {
+        "target": "ES6",//默认为es3
+        "module": "ES2015",
+        "outDir": "./dist",
+        "allowJs": true,
+   		"checkJs": true,
+    }
+```
+
+#### removeComments
+
+* 设置是否将注释也放进到编译后的文件，默认为false
+
+#### noEmit
+
+* 是否生成编译文件，默认为false，true的话只执行编译过程而不生成文件
+
+#### noEmitOnError
+
+* true：编译出错则不生成编译文件，默认false（所以才会编译出错也能编译上去）
+
+#### alwaysStrict
+
+* 设置编译后的文件是否使用严格模式，默认为false
+* 编译后的文件就会加上  ”use strict"
+* 注意如果有使用 module化的话，js是默认严格模式的
+
+
+
+#### noImplicitAny
+
+* 设置是否检查隐式any
+* 默认false
+* true后，使用隐式any类型会报错
+
+#### noImplicitThis
+
+* 检查this，是否是确定的this，因为调用的不同，this可能不同
+* 默认false
+
+#### strictNullChecks
+
+* 严格检查空值，如果值可能是空值时候，会报错
+* 默认false
+
+#### strict
+
+* 所有严格检查的总开关，包含前面这几个严格检查

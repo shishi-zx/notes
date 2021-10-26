@@ -1,0 +1,29 @@
+{
+    "include": [
+        //"./src/**/*"  //表示只编译src目录下任意文件夹下的任意文件
+        "06_编译选项.ts"
+    ],
+    // "exclude": [
+    //     "01_index.ts"
+    // ]
+    "compilerOptions": {
+        "target": "ES6",//默认为es3
+        "module": "ES2015",
+        //"lib": ["dom"],//指定我们要用到DOM库
+        "outDir": "./dist",
+        //"outFile": "./dist/app.js",//如果要合并模块的话，模块必须规范，module必须是 System
+        "allowJs": true,
+        "checkJs": true,
+        "removeComments": false,//默认就是 false
+        //"noEmit": true,
+        "noEmitOnError": true,
+
+        //"strict": false
+        "alwaysStrict": true,
+        "noImplicitAny": true,
+        "noImplicitThis": false,
+        "strictNullChecks": false,
+        
+
+    }
+}
