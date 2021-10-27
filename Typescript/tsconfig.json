@@ -1,7 +1,7 @@
 {
     "include": [
         //"./src/**/*"  //表示只编译src目录下任意文件夹下的任意文件
-        "06_编译选项.ts"
+        "./**/*"
     ],
     // "exclude": [
     //     "01_index.ts"
@@ -18,11 +18,11 @@
         //"noEmit": true,
         "noEmitOnError": true,
 
-        //"strict": false
-        "alwaysStrict": true,
-        "noImplicitAny": true,
-        "noImplicitThis": false,
-        "strictNullChecks": false,
+        "strict": true
+        // "alwaysStrict": true,
+        // "noImplicitAny": true,
+        // "noImplicitThis": false,
+        // "strictNullChecks": false,
         
 
     }

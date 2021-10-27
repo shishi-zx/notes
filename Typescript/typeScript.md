@@ -271,6 +271,59 @@ let l: myType2
   * 变量 as 类型 ：  `str as number`
   * <类型>变量：  `<number>str`
 
+
+
+# 泛型
+
+* 在定义函数或者类时候，不知道类型就可以使用泛型
+
+* 使用 `<名字>` 来表示泛型  
+
+```typescript
+function fn<T>(a: T): T{
+    return a;
+}
+
+// 1. 可以直接调用，让编译器自动去判断类型
+console.log(fn(2));
+console.log(fn("gg"));
+
+// 2. 也可以指定类型调用
+let s = fn<string>('44')
+console.log(s);
+```
+
+* 泛型可以指定多个
+
+```typescript
+function fn2<T, K>(a: T, b: K): T{
+    console.log(a);
+    console.log(b);
+
+
+    return a
+}
+
+fn2(32,'gg')
+fn2<string, number>('33',33)
+```
+
+* 泛型也可以指定继承了谁(接口，类都行)
+
+```typescript
+interface Int{
+    name: string
+}
+
+function fn3<T extends Int>(a: T): number{
+    return 2
+}
+
+fn3({name: 'gg'})
+```
+
+
+
 # 编译选项
 
 * 如果在每次修改ts文件后自动编译为js文件
@@ -461,3 +514,385 @@ let l: myType2
 #### strict
 
 * 所有严格检查的总开关，包含前面这几个严格检查
+
+
+
+# 面向对象
+
+## 类
+
+* 定义类
+* 于java的类有相通的地方
+* 使用class定义类
+* 使用static声明静态属性
+
+```typescript
+class Dog {
+
+    //实例属性，通过实例访问
+    name: string = 'shishi'
+    age: number = 10
+
+    //类属性（静态属性），通过类访问
+    static type: string = 'Dog'
+    
+    say(){
+        console.log('汪');
+    }
+}
+
+const dog = new Dog()
+
+console.log(dog.name);
+console.log(Dog.type);
+```
+
+声明时候的关键字
+
+* static： 声明为静态属性，属性和方法都可以指定为静态的，（类方法或者类属性）
+* readonly：声明为只读属性，于static连用要放在后边
+
+```typescript
+class Dog {
+
+    //实例属性，通过实例访问
+    readonly name: string = 'shishi'
+    age: number = 10
+
+    //类属性（静态属性），通过类访问
+    static readonly type: string = 'Dog'
+    
+    static say(){
+        console.log('汪');
+    }
+}
+
+const dog = new Dog()
+
+console.log(dog.name);
+//dog.name = "jj"//报错,只读属性
+console.log(Dog.type);
+```
+
+## 构造函数
+
+* 使用构造函数来初始化实例对象
+* 会在每次创建实例时候调用
+* 构造函数里的this就是新创建的实例,但是注意其他方法还是要看是谁调用的
+
+```typescript
+class People{
+    readonly name: string
+    age: number
+    constructor(name: string ,age: number){
+        this.name = name
+        this.age = age
+        console.log(this);
+        
+    }
+
+    say(){
+        console.log('hi, I`m '+this.name);
+        
+    }
+}
+let p1 = new People('luffy',13)
+let p2 = new People('zero',15)
+let p3 = new People('black',39)
+
+console.log(p1);
+console.log(p2);
+console.log(p3);
+p1.say()
+p2.say()
+p3.say()
+
+p3.say.call(p2)//p2
+```
+
+## 继承
+
+* 与其他面向对象的语言一样的意思
+* 使用继承后，子类继承父类所有属性和方法
+* 子类可重写方法，也可以添加自己的方法
+
+```typescript
+class Animal{
+    name: string
+    age: number
+
+    constructor(name:string,age:number){
+        this.name = name
+        this.age = age
+    }
+
+    say(){
+        console.log('!!!');
+
+    }
+}
+
+class Dog extends Animal{
+    say(){
+        console.log(this.name,": wang !");
+
+    }
+}
+class Cat extends Animal{
+    say(){
+        console.log(this.name,": miao !");
+
+    }
+}
+
+const dog = new Dog('wangCai',2)
+const cat = new Cat('maoMao',1)
+
+console.log(dog);
+console.log(cat);
+
+dog.say()
+cat.say()
+```
+
+* 与java一样，使用super关键字表示父类
+* 如果子类中写了构造函数，**必须要super调用父类的构造函数**，不写构造函数会自动调用父类的构造函数
+
+```typescript
+class Animal {
+    constructor(name, age) {
+        this.name = name;
+        this.age = age;
+    }
+    say() {
+        console.log('!!!');
+    }
+}
+class Dog extends Animal {
+    constructor(name, age) {
+        super(name, age);
+        console.log('创建了 Dog');
+        super.say();
+    }
+    say() {
+        console.log(this.name, ": wang !");
+    }
+}
+class Cat extends Animal {
+    constructor(name, age) {
+        super(name, age);
+        console.log('创建了 Cat');
+        super.say();
+    }
+    say() {
+        console.log(this.name, ": miao !");
+    }
+}
+const dog = new Dog('wangCai', 2);
+const cat = new Cat('maoMao', 1);
+console.log(dog);
+console.log(cat);
+dog.say();
+cat.say();
+```
+
+## 抽象类
+
+* 愈来愈像java了
+* 使用 abstract关键字来定义抽象类
+* 抽象类只能被继承，不能被实例化（不能 new）
+* 抽象类里可以定义抽象方法，抽象方法必须被子类重写
+* 抽象方法：
+  * 使用abstract声明
+  * 子类必须重写父类的抽象方法
+  * 抽象方法只给出结构，不给实现
+
+```typescript
+abstract class Animal{
+    name: string
+    age: number
+
+    constructor(name:string,age:number){
+        this.name = name
+        this.age = age
+    }
+
+    abstract say(): void
+}
+```
+
+
+
+## 接口
+
+* 抽象类都有了，接口也得有吧，愈来愈像了
+* 接口就是一种规范
+* 使用 interface 声明
+
+```typescript
+/**
+ * interface
+ *  使用接口来定义一个类结构，规定一个类中该包含哪些属性和方法
+ *  同时它可以当作类型声明去使用 （type 关键字），但是接口可以重复声明，会合并在一起
+ *  与抽象类相似，但是接口中不能给实际值，全都是抽象属性和抽象方法
+ */
+interface myInterface{
+    name: string
+    age: number
+}
+interface myInterface{
+    gender: string
+}
+interface myInterface{
+    say():void
+}
+
+//可以在定义类的时候，限制类的结构
+class Animal implements myInterface{
+    name: string;
+    age: number;
+    gender: string;
+
+    constructor(name: string,age:number,gender: string){
+        this.name = name
+        this.age = age
+        this.gender = gender
+    }
+    say(): void {
+        throw new Error("Method not implemented.");
+    }
+
+}
+```
+
+## 属性的封装
+
+* 注意在js中，对象的属性是可以通过  . 属性名来读取和修改的，显然这不是面向对象的思想
+* 所以与java一样，还有其他的属性修饰符（注意这一切的前提是ts，not js）
+  * public：公有属性（子类和外部都能访问）（默认值就是public）
+  * private：私有属性（子类和外部都不能访问）
+  * protect：保护属性 (子类可以访问，外部不能)
+* 与之对应的getter和setter也就出来了
+
+```typescript
+class Person{
+    private name: string
+    private age: number
+
+    constructor(name:string, age:number){
+        this.name = name
+        this.age = age
+    }
+
+    getName(){
+        return this.name
+    }
+    getAge(){
+        return this.age
+    }
+    setName(name: string){
+        this.name = name
+    }
+     setAge(age:number){
+        if(age<0)return
+        this.age = age
+    }
+}
+
+const p1 = new Person('shishi',23)
+
+//console.log(p1.name);//ts 报错
+
+console.log(p1.getName());
+p1.setName('gg')
+console.log(p1.getName());
+
+```
+
+* 但是一般在 TS中这样去写 getter 和 setter
+
+```typescript
+class Person{
+    private name: string
+    private age: number
+
+    constructor(name:string, age:number){
+        this.name = name
+        this.age = age
+    }
+
+    // getName(){
+    //     return this.name
+    // }
+    // getAge(){
+    //     return this.age
+    // }
+    // setName(name: string){
+    //     this.name = name
+    // }
+    // setAge(age:number){
+    //     if(age<0)return
+    //     this.age = age
+    // }
+
+    //但是 不能和属性重名， 也就是不能写小写 name，外部可以直接 通过 .获取到 （p.Name）
+    get Name(){
+        return this.name
+    }
+
+    set Name(name:string){
+        this.name = name
+    }
+
+    get Age(){
+        return this.age
+    }
+
+    set Age(age:number){
+        if(age<0)return
+        this.age = age
+    }
+
+
+}
+
+const p1 = new Person('shishi',23)
+
+//console.log(p1.name);//ts 报错
+
+// console.log(p1.getName());
+// p1.setName('gg')
+// console.log(p1.getName());
+
+//对应第二种写法
+console.log(p1.Name);
+p1.Name = 'gg'
+console.log(p1.Name);
+```
+
+* 注意，在TS中，你可以这样写来简化类的写法
+
+```typescript
+ // 可以直接将属性定义在构造函数中，而不用在类的头部单独写了
+class Dog{
+    constructor(public name: string, private age: number){
+
+    }
+}
+// 等价于
+// class Dog{
+//     public name: string
+//     private age: number
+//     constructor(name:string,age:number){
+//         this.name = name
+//         this.age = age
+//     }
+// }
+
+let d = new Dog('ff',23)
+
+console.log(d.name);
+```
+
+
+
