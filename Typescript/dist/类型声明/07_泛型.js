@@ -16,4 +16,8 @@
     }
     fn2(32, 'gg');
     fn2('33', 33);
+    function fn3(a) {
+        return 2;
+    }
+    fn3({ name: 'gg' });
 })();

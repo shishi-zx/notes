@@ -894,5 +894,304 @@ let d = new Dog('ff',23)
 console.log(d.name);
 ```
 
+# 装饰器
+
+* 一种特殊类型的声明
+* 其实就是一个方法，可以注入到类，方法，属性参数上来扩展功能
+* 能够添加到类声明，方法，属性上，可以修改类的行为
+* 写法：
+  * 普通装饰器（不能传参数）
+  * 装饰器工厂（可传参）
+
+```typescript
+// 定义装饰器
+function myLog(parmas:any){
+
+    console.log(parmas);// parmas 就是当前类
+
+    parmas.prototype.msg = 'ha ha'//给当前类扩展一个属性
 
 
+}
+
+//使用装饰器
+@myLog
+class Person{
+    constructor(){
+
+    }
+
+    getData(){
+
+    }
+}
+
+let p1:any = new Person()
+console.log(p1.msg);// ha ha
+
+```
+
+* 上面这种是普通装饰器，不可以传参数
+* 装饰器工厂
+
+```typescript
+function myLog(params:string){
+
+
+    // return 的这个函数的参数就是类本身
+    return function(target:any){
+        console.log(target);
+        console.log(params);
+
+        target.prototype.msg = params
+
+    }
+}
+
+@myLog('ha ha ha')
+class Dog{
+    constructor(){
+
+    }
+    getName(){
+
+    }
+}
+
+// 执行此文件控制台会输出
+//[class Dog]
+//ha ha ha
+
+let d:any = new Dog()
+console.log(d.msg);// ha ha ha
+```
+
+* 类装饰器
+  * 如果装饰器方法里return 一个类构造函数（继承了装饰的类，就是接收到的target参数）那么被该装饰器装饰的类会使用提供的构造函数来替换类的声明（原来的类就变成装饰后返回的子类）
+  * 但是注意，这种情况下必须重写父类方法，不然报错
+
+```typescript
+function myLog(params:any){
+    console.log(params);
+    return class extends params{
+        msg:string = '被改了'
+    }
+}
+
+@myLog
+class Dog{
+    public msg: string | undefined
+    constructor(){
+        this.msg = '我是原来的'
+    }
+}
+
+let d = new Dog()
+console.log(d.msg);// 被改了
+```
+
+* 属性装饰器
+  * 会在运行时当作函数被调用，传入两个参数
+    * 对于静态成员来说是类的构造函数，对于实例来说是类的原型对象
+    * 成员的名字
+
+```typescript
+// 定义一个属性装饰器
+function myValue(params:any){
+   return function(target:any,attr:string){
+       console.log(target);// {}   注意执行此文件就会打印这两行，不需要 new 实例，因为在类里 使用 @的时候就当作函数执行过这一段代码了
+       console.log(attr);// msg
+
+       target[attr] = params
+
+   }
+}
+class Dog{
+
+    @myValue('hello')
+    public msg: string | undefined
+
+    constructor(){
+    }
+}
+
+let d = new Dog()
+    console.log(d.msg);// hello
+```
+
+* 方法装饰器
+  * 接受三个参数
+    * 对于静态成员来说是类的构造函数，对于实例来说是类的原型对象
+    * 方法的名字
+    * 方法的属性描述符
+
+```typescript
+ // 定义一个方法属性装饰器
+function myFn(params:any){
+   return function(target:any,methodsName:string,desc:any){
+      console.log(target);// {}
+      console.log(methodsName);// getData
+      console.log(desc); //{
+                        //     value: [Function: getData],
+                        //     writable: true,
+                        //     enumerable: false,
+                        //     configurable: true
+                        //   }
+
+      target['name'] = 'shishi'
+
+      // 可以修改被装饰的方法
+      // 1.先保存当前方法
+      let old = desc.value
+
+      // 2.如果要替换方法的话就这样写,没有第三步
+      desc.value = function(...args:any[]){
+            args = args.map((i)=>{
+                return String(i)
+            })
+
+            console.log(args);
+
+            // 3. 如果只是想修改的话，调用一下原来的方法
+            old.apply(this,args)
+
+      }
+
+   }
+}
+class Dog{
+    public msg: string | undefined
+
+    constructor(){
+    }
+
+    @myFn('gggg')
+    getData(){
+        console.log('如果只是替换的话看不到我');
+
+    }
+}
+
+let d:any = new Dog()
+console.log(d.name);//shishi
+d.getData(12,'34','gg',45)// [ '12', '34', 'gg', '45' ]  //如果只是替换的话看不到我
+
+    
+```
+
+* 方法参数装饰器
+  * 会在运行时候当作函数被调用，可以使用参数装饰器为类的原型增加一些元素数据，传入三个参数
+    * 对于静态成员来说是类的构造函数，对于实例来说是类的原型对象
+    * 参数所在方法的方法名称
+    * 参数在函数的参数列表中的索引
+
+```typescript
+// 定义一个方法属性装饰器
+function myFnParams(params:any){
+   return function(target:any,paramsName:string,paramsIndex:number){
+      console.log(target);// {}
+      console.log(paramsName);// getData
+      console.log(paramsIndex);//1
+      console.log(params);// agexx
+
+
+
+   }
+}
+class Dog{
+    public msg: string | undefined
+
+    constructor(){
+    }
+    //getData(name:string, age:number){
+    getData(name:string,@myFnParams('agexx') age:number){
+
+
+    }
+}
+```
+
+* 装饰器执行顺序
+  * 属性->方法->方法参数->类
+  * 如果多个同样装饰器，会先执行后面的，就近
+  * 从上到下，从里到外，从右到左
+
+# 命名空间
+
+* 为了避免多个文件的命名冲突
+
+```typescript
+export namespace A{
+    export let shishi:string = 'hh'
+}
+export namespace A{
+    let shishi:string = 'ff'//不报错
+}
+
+export namespace B{
+    export let shishi:string = 'gg'
+}
+export namespace B{
+    //export let shishi:string = 'gg' //报错
+    export let shishi_02:string = 'gggggg'
+}
+
+
+console.log(B.shishi);//gg
+console.log(B.shishi_02);//gggggg
+//console.log(shishi);//报错
+//console.log(A.shishi);//报错
+
+
+//可以作为模块暴露出去，然后在其他文件中引入该命名空间
+//本文件中暴露出去
+//其他文件中这样引入
+// import {A,B} from './01_index'
+
+// console.log(A.shishi);
+```
+
+
+
+
+
+
+
+# 补充
+
+* 可以使用 ts-node包来简化ts文件执行步骤
+  * 它会先转化为js文件，然后执行这个js文件
+  * 而且这里不会在文件夹中产生新的js文件，但实际上是转换为js文件执行的
+  * 安装`npm i -g ts-node`
+  * 使用： `ts-node  app.ts`
+
+## TS中函数重载
+
+* 与java重载一个意思，但是写法思路不一样
+* java中函数重载是因为同名函数的参数不一样
+* TS中重载是通过为同一个函数提供多个函数类型定义来达到多种功能的目的
+* 写法区别(因为要兼容es5)：
+
+```typescript
+function add(a:number):number
+
+function add(a:number,b:number):number
+
+function add(a:string):string
+
+function add(a:any,b?:number):any{
+    if(typeof a === 'string'){
+        return a+'#'
+    }else{
+        if(!b)
+        return a*10
+        return a+b
+    }
+}
+
+console.log(add(2));//20
+console.log(add(2,3));//5
+console.log(add('shishi'));//shishi
+```
+
+* 这只是为了迎合重载的思想
