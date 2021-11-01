@@ -278,3 +278,105 @@ module.exports = {
   ```
 
 * template 会复制对应的html文件，然后自动引入需要的资源
+
+## 打包图片资源
+
+* webpack5 默认配置就是有引入图片的（也就是注释掉的代码在5中默认了），下面的都是webpack5之前的操作
+* 如果在css文件中引入了图片，则我们需要加loader规则来打包图片
+
+```js
+module: {
+        rules: [
+            {
+                test: /\.css$/,
+                use: [
+                    'style-loader',
+                    'css-loader'
+                ]
+            },
+            // {
+            //     // 处理图片资源
+            //     test: /\.(jpg|png|jpeg|)$/,
+            //     //只使用一个loader可以直接写,多个用 use
+            //     // 要下载两个包，url-loader  file-loader
+            //     loader: 'url-loader',
+            //     options: {
+            //         //当图片大小小于 8kb ，就会被base64处理（图片内容会变成字符串保存）
+            //         // base64： 减少请求数量，但是图片体积会增大导致请求速度变慢
+            //         // 根据资源而定
+            //         limit: 8 * 1024,
+
+            //         //而且url-loader默认使用es6的语法，import导入规则，html-loader是commonjs规则，会出问题
+            //         //所以要关闭es6模块化
+            //         esModule: false
+            //     }
+            // },
+        ]
+    },
+```
+
+* 上面这种方法是默认处理不了 html 中引入的图片的（包括webpack5）
+* 所以如果在html中引入了图片，还需要加loader，下载html-loader
+* html-loader 是用来处理html中引入的图片
+
+```js
+ {
+    test: /\.html$/,
+    //这个是处理html的img图片的（负责引入img，从而能被url-loader打包处理）
+    loader: 'html-loader'
+}
+```
+
+* 对于options配置，除了limit之外，还可以给输出的文件重命名
+  * name: '[hash:10].[ext]'
+  * 表示hash值取十位，ext表示保持原来文件的扩展名
+
+## 打包其他资源
+
+* 如果使用了其他的库的资源，比如第三方字体图标文件，（.ttf/.svg/.woff/...）
+
+```js
+ module: {
+    rules: [
+        {
+            test: /\.css$/,
+            use: ['style-loader,css-loader']
+        },
+        //打包其他资源（除了 html，css，js）
+        {
+            //排除 css/js/html资源
+            exclude: /\.(css|js|html|)$/,
+            loader: 'file-loader'
+        }
+    ]
+},
+```
+
+## devServer
+
+* 为了避免一直手动打包来更新代码，devServe提供了热更新
+
+* 注释掉的代码表示webpack5之前是这样写
+
+* 与五大核心同级的配置
+
+```js
+// 开发服务器 devServer： 自动编译打包，自动打开浏览器，自动刷新浏览器
+// 特点： 只会在内存中编译打包，不会有任何输出
+// 启动命令： npx webpack-dev-server ,需要安装这个包
+// webpack5 的启动命令为 webpack server（用以前的也行）
+devServer: {
+    // contentBase: resolve(__dirname,'build'),
+    static: resolve(__dirname,'build'),
+    // 启动gzip压缩，让编译运行的更快
+    compress: true,
+    // 指定运行的端口号
+    port: 3000,
+
+    //自动打开浏览器
+    open: true
+}
+```
+
+* 注意webpack5默认有配置，运行在8080下，直接命令也能打开
+* 这个是在内存中编译的，就算没有bulid文件夹，也能执行，而且不会生成文件，只有打包webpack命令才会真正打包
