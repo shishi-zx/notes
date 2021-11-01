@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- 这里引入的是 less 文件，没有转化为css 文件，所以样式是不会生效的 -->
+    <link rel="stylesheet" href="./index.less">
+    <title>hello</title>
+</head>
+<body>
+    <h1 class="box">
+        hello
+    </h1>
+
+
+    <!--   这里引入的js文件使用了es6的import语法，显然浏览器会报错  -->
+    <script src="./index.js"></script>
+
+    <!-- 
+
+        所以我们需要 webpack 工具来帮我们构建less解析和es6编译的环境，并且webpack可以帮助我们打包代码，这就是webpack存在的意义
+     -->
+</body>
+</html>
