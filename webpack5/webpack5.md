@@ -380,3 +380,260 @@ devServer: {
 
 * 注意webpack5默认有配置，运行在8080下，直接命令也能打开
 * 这个是在内存中编译的，就算没有bulid文件夹，也能执行，而且不会生成文件，只有打包webpack命令才会真正打包
+
+## 提却css文件为一个单独文件
+
+* 之前使用 style-loader 是将 js中的css提取到它创建的style标签中，样式是存在js中
+* 我们可以不使用style-loader，来讲css提却到一个单独文件中，然后 他将会在html中自动引用（link）
+* 与之前不同在于，之前样式是放在js中的，现在成为了单独的css文件
+
+* 首先我们需要安装一个插件： `npm i mini-css-extract-plugin -D`
+* 然后在配置中引入，并在loader中替代 style-loader，并在 plugins中new实例
+  * 创建实例的参数可以指定输出的文件
+
+```js
+const { resolve } = require('path')
+const HtmlWebpackPlugin = require('html-webpack-plugin')
+
+// 用来将css单独提取为一个单独文件
+const MiniCssExtractPlugin = require('mini-css-extract-plugin')
+
+module.exports = {
+    entry: './src/js/index.js',
+    output: {
+        filename: 'js/built.js',
+        path: resolve(__dirname, 'build')
+    },
+    module: {
+        rules: [
+            {
+                test: /\.css$/,
+                use: [
+                    //'style-loader',  // 创建style标签，然后将样式放上去
+                    MiniCssExtractPlugin.loader, // 取代style-loade ， 提取js中的css为单独文件
+                    'css-loader'     // 将css文件整合到js文件中
+                ]
+            }
+        ]
+    },
+   plugins: [
+        new HtmlWebpackPlugin({
+            template: './src/index.html'
+        }),
+        // 将 css 为单独文件
+        new MiniCssExtractPlugin({
+            filename: 'css/built.css', // 重命名，默认输出为 main.css
+        })
+    ],
+    mode: 'development'
+}
+```
+
+## css兼容性问题
+
+* 处理 css的兼容性问题，我们需要装两个loader 
+* `npm i postcss-loader postcss-preset-env -D`
+* 然后修改css文件的loader配置
+
+```js
+{
+    test: /\.css$/,
+    use: [
+        MiniCssExtractPlugin.loader, 
+        'css-loader',
+        /*
+            css 兼容性处理： 使用postcss：安装 postcss-loader postcss-preset-env
+
+            帮postcss找到package.json中的broswerslist里面的配置，通过配置加载指定的css兼容性样式
+        */
+        // 1. 直接使用默认配置
+        //'postcss-loader',
+        // 2 .修改配置，不适用默认，写成对象形式
+        {
+            loader: 'postcss-loader',
+            options: {
+                postcssOptions: {
+                    plugins: [
+                    [
+                        // postcss 的插件, 可以在postcss官网查询
+                        'postcss-preset-env',
+                        {
+                        // 其他选项
+                        },
+                    ],
+                    ],
+                },
+            },
+        },
+    ]
+}
+```
+
+* broswerslist配置
+
+```js
+...
+"browserslist": {
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version"
+    ],
+    "productionb": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ]
+}
+...
+```
+
+* 但是如果我们要想让样式生效在 development环境下（开发环境下），需要修改一项配置，因为样式broswerslist默认是看生产模式的，（于webpack配置文件中的mode无关）
+* 修改node环境变量： process.env.NODE_ENV = 'development'
+
+
+
+## 压缩css
+
+* 使用一个插件： `npm i optimize-css-assets-webpack-plugin -D`
+* 配置文件中引入并在plugins中new调用
+
+```js
+const MiniCssExtractPlugin = require('mini-css-extract-plugin')
+...
+plugins: [
+
+    ...
+    // 压缩css
+    new optimizeCssAssetsWebpackPlugin()
+],
+```
+
+## 压缩js
+
+* 只要将mode调整为production就行了
+* 因为生产模式下自动压缩js代码
+
+## 压缩html
+
+* 在插件里打包html时传入两个参数就行
+  * collapseWhitespace: 折叠空格
+  * removeComments： 注释
+
+```js
+plugins: [
+    new HtmlWebpackPlugin({
+        template: './src/index.html',
+        minify: {
+            collapseWhitespace: true,
+            removeComments: true
+        }
+    })
+],
+```
+
+* **webpack5** 只要将mode改为生产模式也会自动压缩html代码
+
+# 性能优化
+
+* webpack性能优化
+  * 开发环境性能优化
+    * 优化打包构建速度
+    * 优化代码调试
+  * 生产环境性能优化
+    * 优化打包构建速度
+    * 优化代码运行的性能
+
+## HMR
+
+* 模块热替换： hot module replacement
+* 官网：https://webpack.docschina.org/guides/hot-module-replacement/
+
+* 一个模块发生变化，只会重新打包这一个模块，而不用去打包所有模块
+* 将提高**打包构建速度**
+* 使用： devServer配置中加入 hot ：true
+
+```js
+devServer: {
+    static: resolve(__dirname,'dist'),
+    // HMR
+    hot: true
+}
+```
+
+* 这是修改样式文件是可以实现hmr的，因为style-loader以及一些解决css的loader实现了hmr
+  * 样式文件： 可以使用HMR
+  * js文件： 默认不使用HMR
+  * html文件： 默认不使用HMR功能，同时会导致html文件不能热更新了
+    * 热更新解决： 改入口，将index.html加进去 `entry: ['./src/js/index.js','./src/index.html']`
+
+* html显然就一个文件，不需要做HMR功能
+* js文件有很多，需要HMR功能
+  * 必须修改js代码，添加支持HMR功能的代码
+  * 只能处理非入口js文件
+  * 在入口文件中加入监听
+
+```js
+if(module.hot){
+    // 一旦module上有hot属性，说明开启了HMR功能，这时候我们需要让HMR功能代码生效
+    module.hot.accept('./log.js', function () {
+        // 该方法会监听 log.js 文件的变化，一旦发生并变化，其他文件默认不会重新打包构建
+        // 会执行该回调
+        console.log('log.js文件更新');
+    })
+}
+```
+
+* HMR也会有一些问题存在，以及有支持HMR的vue的loader，查看官网说明
+
+## source-map
+
+* 优化代码调试
+* source-map:  提供源代码到构建后的代码映射的技术 （如果构建后代码出错了，通过映射可以追踪源代码错误）
+* 使用：在配置文件中第一级配置下加入配置项
+
+```js
+devtool: 'source-map'
+```
+
+* 然后执行webpack指令，然后对应输出文件会有一个对应的`.map`文件生成
+
+* 上面这种写法是基本配置，它还可以有以下参数
+  * `[inline-|hidden-|eval-] [nosources-][cheap-[module-]]source-map`
+* 具体含义
+  * 内联形式比外部形式来说，代码构建速度更快，并且没有生成额外的.map文件
+  * source-map：外部
+  * inline-source-map：内联：会将内容放到对应的文件里（注释形式）
+    * 只生成一个内联source-map
+  * hidden-source-map：外部：
+  * eval-source-map：内联：
+    * 每一个文件都生成对应的source-map，都在 eval 函数中
+  * nosources-source-map: 外部
+  * cheap-source-map：外部
+  * cheap-module-source-map：外部
+* 使用： 当你在运行devserver时编写代码，就能在控制台定位到错误代码的来源在源代码中的位置，而不会在构建后代码的位置了
+  * 各种参数下的情况
+  * source-map：能够提示错误代码的准确信息和源代码的错误位置
+  * inline-source-map：能够提示错误代码的准确信息和源代码的错误位置
+  * hidden-source-map：能够提示错误代码的准确信息，但是不能追踪源代码位置
+  * eval-source-map：能够提示错误代码的准确信息和源代码的错误位置，每个文件多了一个hash值而已，方便调试
+  * nosources-source-map：能够提示错误代码的准确信息和源代码的错误位置，但是没有任何源代码的信息，浏览器控制台是追踪不到的
+  * cheap-source-map：能够提示错误代码的信息和源代码的错误位置（但是只能精确到行，不知道是具体哪一段代码）
+  * cheap-module-source-map：能够提示错误代码的信息和源代码的错误位置（但是只能精确到行，不知道是具体哪一段代码），module会将loader的source map加入
+
+* 如何选择？
+
+  * 开发环境：速度快，调试友好
+    * 速度快（eval>inline>cheap>...）
+      * eval-cheap-source-map > eval-source-map
+    * 调式友好(排序从上到下)
+      * source-map
+      * cheap-moudle-source-map
+      * cheap-source-map
+    * 根据以上可中和一个结果： eval-source-map  |  eval-cheap-module-source-map
+    * vue 和 react 的脚手架就默认使用 eval-source-map
+
+  * 生产环境：源代码要不要隐藏？调试要不要更友好？
+    * 内联会让代码体积变大，生产环境不使用内联
+    * nosource-source-map： 全部隐藏
+    * hidden-source-map： 只隐藏代码，会提示构建后的代码错误信息
+    *  推出一般结论： source-map | cheap-module-sopurce-map

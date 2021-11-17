@@ -1,0 +1,1 @@
+{"version":3,"file":"css/built.css","mappings":";;;AAAA;IACI,YAAY;IACZ,mBAAmB;IACnB,gBAAgB;AACpB,C","sources":["webpack:///./src/css/index.css"],"sourcesContent":["img{\r\n    width: 200px;\r\n    /* height: 200px; */\r\n    overflow: hidden;\r\n}"],"names":[],"sourceRoot":""}
