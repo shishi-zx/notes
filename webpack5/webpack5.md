@@ -637,3 +637,123 @@ devtool: 'source-map'
     * nosource-source-map： 全部隐藏
     * hidden-source-map： 只隐藏代码，会提示构建后的代码错误信息
     *  推出一般结论： source-map | cheap-module-sopurce-map
+
+## oneOf
+
+* 生产环境的优化，优化代码构建速度
+* 优化loader的处理
+  * 一般来说，所有配置的loader都会被过一遍，但是我们只需要例如（switch break的效果）
+* 使用 oneOf 选项将在一个文件只会命中其中一条loader规则的loader放到同一个数组中，来实现优化
+  * 注意：里面不能有两个loader是处理同一种文件
+  * 所以如果想要其他loader一起同时匹配，需要将loader放到外面，与 **{ oneOf }** 同级
+
+```js
+rules: [
+    {
+        //以下loader只会命中一个
+        oneOf: [
+            {
+                test: /\.css$/,
+                use: [
+                    MiniCssExtractPlugin.loader,
+                    'css-loader',
+                    {
+                        //还需要在package.json中定义browserslist
+                        loader: 'postcss-loader',
+                        options: {
+                            postcssOptions: {
+                                plugins: [
+                                [
+                                    'postcss-preset-env'
+                                ],
+                                ],
+                            },
+                        },
+                    },
+                ]
+            },
+            {
+                test: /\.less$/,
+                use: [
+                    MiniCssExtractPlugin.loader,
+                    'css-loader',
+                    {
+                        //还需要在package.json中定义browserslist
+                        loader: 'postcss-loader',
+                        options: {
+                            postcssOptions: {
+                                plugins: [
+                                [
+                                    'postcss-preset-env'
+                                ],
+                                ],
+                            },
+                        },
+                    },
+                    'less-loader'
+                ]
+            },
+            {
+                test: /\.html$/,
+                //这个是处理html的img图片的（负责引入img，从而能被url-loader打包处理）
+                loader: 'html-loader'
+            }
+        ]
+    }
+]
+```
+
+
+
+
+
+## 缓存
+
+* 生产环境优化
+
+* 官网：https://webpack.docschina.org/guides/caching/。 ：（如果我们在部署新版本时不更改资源的文件名，浏览器可能会认为它没有被更新，就会使用它的缓存版本）
+
+* 那么我们怎么解决这种缓存问题呢：
+
+  * 让构建后的文件的名字更改，那么浏览器访问时候就不会使用缓存版本了
+
+* 第一种方法：文件名上带上hash值
+
+  * 1.hash:  在配置文件中指定输出的文件名中带有hash值，保证文件名与缓存版本不一致，让浏览器读取最新文件
+
+  ```js
+  // 在输出的js文件名中带入 10位hash值 
+  output: {
+      filename: 'js/built.[hash:10].js',
+      path: resolve(__dirname, 'dist')
+  },
+  ```
+
+  ```js
+  // 在输出的css文件中带入10位hash值
+  plugins: [
+      new MiniCssExtractPlugin({
+          filename: 'css/built.[hash:10].css'
+      }),
+      ...
+  ],
+  ```
+
+  * 但是以上这一个方法存在一个问题，因为js文件和css文件共享的都是webpack打包时候创建的hash值，只改其中一个重新打包后，所有的hash都跟着变了，这显然不是我们所期望的，这让没有变化的资源文件的缓存失效了
+  * 2 .chunkhash（将hash换为chunkhash）：根据chunk生成的hash值，如果打包来源于同一个chunk，那么hash值一样
+    * 同样存在问题： js和css的hash值还是一样的（如果css文件是在js中引入的，那么他们同属于一个chunk）
+  * 3 . contenthash：根据文件的内容生成hash值，不同文件hash值一定不一样
+
+## Tree shaking
+
+官网：https://webpack.docschina.org/guides/tree-shaking/
+
+* 去除无用代码，减少代码体积
+* 前提
+  * 必须使用ES6模块化
+  * 开启production环境
+* 只要做到以上两步，webpack打包时候自动tree shaking
+
+* 如果在package.json中配置`"sideEffects": false`所有代码都没有副作用 （都可以进行tree shaking）
+  * 会导致：可能会把 css / @babel/polyfill（副作用）文件干掉
+  * 解决： ``"sideEffects": ["*.css"]`,不对css文件进行tree shaking
