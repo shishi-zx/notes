@@ -757,3 +757,87 @@ rules: [
 * 如果在package.json中配置`"sideEffects": false`所有代码都没有副作用 （都可以进行tree shaking）
   * 会导致：可能会把 css / @babel/polyfill（副作用）文件干掉
   * 解决： ``"sideEffects": ["*.css"]`,不对css文件进行tree shaking
+
+
+
+## code split
+
+官网：https://webpack.docschina.org/guides/code-splitting/
+
+* 代码分割
+
+1. 通过多入口拆分文件
+
+```js
+// entry: './src/js/index.js', // 单入口
+entry: {
+    // 多入口： 有一个入口，最终输出就有一个bundle
+    main: './src/js/index.js',
+    test: './src/js/test.js'
+},
+output: {
+    filename: 'js/[name].[contenthash].js',
+    path: resolve(__dirname,'dist')
+},
+```
+
+* 这种设置为多入口后，就不需要在index.js文件中引入test.js文件了
+
+* 显然这种方式不太灵活
+
+2. 使用webpack提供的配置项
+
+```js
+ // 可以将 node_modules中的代码单独打包成一个chunk最终输出
+// 会将多入口chunk中公共的文件单独打包成一个chunk（前提是这个文件不是太小），防止重复
+optimization: {
+    splitChunks: {
+        chunks: 'all'
+    }
+},
+```
+
+* 主要功能是：
+  * 会将第三方的库和自己的库分割开来
+  * 如果配合上多入口配置的话，例如： index和test.js文件中都引入了jquery的话，不会让两个chunk中都注入jquery代码，而是将jquery单独打包成一个chunk公用
+
+* 但是显然多入口（多页面应用）还是不如单入口（单页面应用）灵活
+
+3. 在入口文件index.js文件中代码控制
+   * 使用es10的动态import方法引入，返回一个promise对象
+
+```js
+/**
+ * 通过js代码，让某个文件被单独打包成一个chunk
+ */
+// es10的语法
+import('./test')
+.then((res)=>{
+    console.log(res)
+    res.fn1
+    res.fn2
+})
+.catch((err)=>{
+    console.log(err)
+})
+```
+
+* 成功拿到的res是test.js的module对象
+
+* 但是这样会导致test输出的文件名是一个递增的id number,所以我们需要指定名字不变
+
+```js
+import(/* webpackChunkName: 'test' */'./test')
+```
+
+* 当然promise可以配上async、await的语法
+
+```js
+async function loadTest(){
+    let {fn1 ,fn2} = await import(/* webpackChunkName: 'test' */'./test')
+    log(fn1())
+    log(fn2())
+}
+loadTest()
+```
+
