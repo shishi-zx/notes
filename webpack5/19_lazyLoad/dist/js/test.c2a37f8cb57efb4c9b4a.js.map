@@ -1,0 +1,1 @@
+{"version":3,"file":"js/test.c2a37f8cb57efb4c9b4a.js","mappings":"iFAEO,SAASA,EAAIC,EAAEC,GAClB,OAAOD,EAAEC,E,0BAHbC,QAAQC,IAAI","sources":["webpack:///./src/js/test.js"],"sourcesContent":["console.log('test被加载了')\r\n\r\nexport function add(a,b){\r\n    return a+b\r\n}"],"names":["add","a","b","console","log"],"sourceRoot":""}

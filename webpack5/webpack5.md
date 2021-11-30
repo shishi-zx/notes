@@ -841,3 +841,46 @@ async function loadTest(){
 loadTest()
 ```
 
+
+
+## 懒加载
+
+官网：https://webpack.docschina.org/guides/lazy-loading/
+
+* 指 js 代码的懒加载
+* 基于代码分离
+* 指在某些异步任务中去加载其他js模块的代码
+* 例如这样就是一种懒加载
+
+```js
+document.getElementById('btn').onclick = function(){
+    import(/* webpackChunkName: 'test' */'./test')
+    .then(( {add } ) => {
+        console.log(add(2,4));
+    })
+}
+```
+
+
+
+
+
+## 预加载
+
+官网：https://webpack.docschina.org/guides/code-splitting/#prefetchingpreloading-modules
+
+* 也是基于代码分离
+* 开启指定的webpack的内置指令`webpackPrefetch: true `
+* prefetch: 会在使用之前，提前加载js文件
+
+```js
+import(/* webpackChunkName: 'test' ,webpackPrefetch: true */'./test')
+.then(( {add } ) => {
+    console.log(add(2,4));
+})
+```
+
+* 对比三种加载方式
+  * 正常加载：可以认为是并行加载，同一时间在加载规定的http文件数量的文件
+  * 懒加载：当文件需要时候才加载
+  * 预加载：等其他资源加载完毕，浏览器空闲时候才偷偷加载这资源，兼容性差
