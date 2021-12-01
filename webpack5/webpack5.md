@@ -884,3 +884,92 @@ import(/* webpackChunkName: 'test' ,webpackPrefetch: true */'./test')
   * 正常加载：可以认为是并行加载，同一时间在加载规定的http文件数量的文件
   * 懒加载：当文件需要时候才加载
   * 预加载：等其他资源加载完毕，浏览器空闲时候才偷偷加载这资源，兼容性差
+
+## pwa渐进式网络开发应用程序
+
+* 离线可访问
+* 官网：https://webpack.docschina.org/guides/progressive-web-application/
+* 安装插件：`npm i workbox-webpack-plugin -D`
+* 配置文件中引入：
+
+```js
+const WorkboxWebpackPlugin = require('workbox-webpack-plugin')
+```
+
+* 直接在插件配置中new调用并写配置
+
+```js
+new WorkboxWebpackPlugin.GenerateSW({
+    // 1 帮助serviceworker快速启动
+    // 2 删除旧的 servicework
+
+    
+    clientsClaim: true,
+    skipWaiting: true
+    
+    // 会生成一个servicework的配置文件
+})
+```
+
+* 然后在入口文件（index.js）中注册servicework并做兼容性处理
+  * 兼容性处理： 判断navigator上有没有这个属性
+  * 有的话做注册
+  * ‘service-work.js’就是它的配置文件，会在构建后的资源中生成（不是我们自己创建的）
+
+```js
+// 1 注册 servicework
+// 2 处理兼容性问题
+if('servicework' in navigator) {
+    window.addEventListener('load',() => {
+        navigator.serviceWorker.register('./service-wprker.js')
+        .then(() => {
+            console.log('servicework 注册成功');
+        })
+        .catch(() => {
+            console.log('servicework 注册失败');
+        })
+    })
+}
+```
+
+* 注意如果开启了eslint的话，它可能不认识某些全局变量（window、navigator...），需要在eslint的配置中修改（在package.json中修改）
+* 然后执行打包命令webpack，就会发现构建后的代码中多了 service-work.js 文件
+* 注意：servicework代码必须运行在服务器上
+* 然后可以运行一下dist目录（打包后的资源目录），然后浏览器打开，运行一次，断网后发现，可以达到效果
+
+
+
+
+
+## 多进程打包
+
+提升打包速度
+
+* 只有工作消耗时间较长，才需要（因为进程启动和通信都需要时间开销）
+  * 所以一般用于js打包，Babel和eslint，一般和Babel
+  * 用法就是一个loader，放在use中第一个
+  * 可以在options中配置分配的cpu核数，默认为 总数-1
+
+* `npm i thread-loader -D`
+
+
+
+## externals
+
+* 打包时候，如果我们想通过 cdn链接应用其他资源，比如jquery，而不是将jquery源码打包进去
+* 但是当我们做了忽略后，我们需要在html中手动引进来
+* 微软的一个提供的jquery的链接：
+
+```js
+<script src="http://ajax.aspnetcdn.com/ajax/jQuery/jquery-1.8.0.js"></script>
+```
+
+* 在配置文件中做忽略配置
+
+```js
+externals: {
+    // 忽略库名 ：在npm中的包名
+    jQuery: 'jQuery'
+}
+```
+

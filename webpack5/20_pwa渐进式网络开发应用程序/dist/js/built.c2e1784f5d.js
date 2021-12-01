@@ -1,0 +1,2 @@
+console.log("index.js is load"),"serviceWorker"in navigator&&window.addEventListener("load",(()=>{navigator.serviceWorker.register("./service-wprker.js").then((()=>{console.log("serviceWorker 注册成功")})).catch((()=>{console.log("serviceWorker 注册失败")}))}));
+//# sourceMappingURL=built.c2e1784f5d.js.map
