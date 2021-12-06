@@ -79,12 +79,12 @@ function sum(x,y) {
 console.log(sum(3, 5));
 ```
 
-* 执行`webpack ./src/index.js -o ./build/built.js  --mode=development`命令，发现build文件夹下生成了built.js文件，而且它下面还有一个main文件
+* 执行`webpack ./src/index.js -o ./build/built.js  --mode=development`命令，发现build文件夹下生成了built.js文件
 * 执行`webpack ./src/index.js -o ./build/built.js  --mode=production`命令，发现build文件夹下生成了built.js文件，而且它下面还有一个main文件，但是针对于开发环境来说，生产环境的代码是压缩的
 
 * 这个时候在html中引入我们的打包后的main.js文件，发现可以运行了（之前如果包含es6的一些语法比如import是会报错的，但是打包后就不会了）
   * 生产环境和开发环境将ES6模块化编译为浏览器能够认识的模块化
-* 但是注意的是，webpack 能处理js和json文件，不能处理css/img等其他资源
+* 但是注意的是，此时webpack 能处理js和json文件，不能处理css/img等其他资源
 
 ```js
 // webpack打包失败
@@ -173,7 +173,7 @@ module: {
                 'css-loader'
             ]
         }
-    ]
+    ]  
 },
 ```
 
@@ -972,4 +972,106 @@ externals: {
     jQuery: 'jQuery'
 }
 ```
+
+
+
+## dll
+
+* 可以将第三方库打包在一起，然后用的时候直接引用就行了
+* 优化第三方库重复打包的问题
+* 与external的区别
+  * externals是直接不打包，通过cdn链接引入
+  * dll是单独自己先打包好资源，让html自动引入
+
+
+
+1. 首先我们许需要新建一个配置文件 ，名称任意 （webpack.dll.js）
+
+2. 编写内容
+
+   1. 并且我们需要指定我们的运行命令运行这个配置文件: 
+
+      ```bash
+      webpack --config webpack.dll.js
+      ```
+
+```js
+/**
+ * 使用dll技术，对某些库（第三方库：jquery，vue）进行单独打包
+ *      当你运行 webpack时，默认查找 webpack.config.js 配置文件
+ *      但是我们需要运行 webpack.dll.js 文件
+ *          --> :  webpack --config webpack.dll.js
+ */
+const {resolve} = require('path')
+const webpack = require('webpack')
+module.exports = {
+    entry: {
+        // 最终打包生成的【name】--> jquery
+        // ['jquery'] --> 要打包的库是jquery
+        jquery: ['jquery']
+    },
+    output: {
+        filename: '[name].js',
+        path: resolve(__dirname,'dll'),
+        library: '[name]_[hash]', //打包的库向外暴露出去的内容叫什么名字
+    },
+    plugins: [
+        // 打包生成一个 manifest.json文件 --> 提供和jquery映射
+        new webpack.DllPlugin({
+            name: '[name]_[hash]',//映射库的暴露的内容名称
+            path: resolve(__dirname,'dll/manifest.json')// 输出文件路径
+        })
+    ],
+    mode: 'production'
+}
+```
+
+3. 运行命令后，就可以看见生成了dll文件夹，资源就放在里面，用到的时候直接引用就行
+
+4. 修改 webpack.config.js配置
+
+   1. 引入webpack
+   2. new 调用 ,在参数里指定 manifest映射
+
+   ```js
+   // 引入webpack
+   const webpack = require('webpack')
+   ...
+   plugins: [
+           new HtmlWebpackPlugin({
+               template: './src/index.html'
+           }),
+           // 告诉webpack哪些库不参与打包，同时使用时的名称也得改
+           new webpack.DllReferencePlugin({
+               manifest: resolve(__dirname,'dll/manifest.json')
+           })
+       ],
+   ```
+
+5. 然后执行打包命令 ： `webpack`
+
+6. 这样就发现index.js中的引入的jquery就不会打包了
+
+7. 没打包就没有，所以我们这时候还没完，需要一个插件
+
+   1. `npm i add-asset-html-webpack-plugin -D`
+
+8. 引入并使用
+
+```js
+//
+const AddAssetHtmlWebpackPlugin = require('add-asset-html-webpack-plugin')
+...
+ // 将某个文件打包输出出去，并在html中自动引入这个资源
+new AddAssetHtmlWebpackPlugin({
+    filepath: resolve(__dirname,'dll/jquery.js')
+})
+```
+
+9. webpack.DllReferencePlugin告诉webpack哪个文件不用dabao，而AddAssetHtmlWebpackPlugin就是告诉webpack将某个文件打包输出出去，并在html中自动引入这个资源
+   1. 我们让webpack不打包index.js中引入的jquery，然后让webpack将dll文件夹下的jquery输出到dist文件夹下，让html自动引入
+
+* 步骤比较繁多
+  * 编写webpack.dll.js配置文件来打包库文件并使用指定命令运行此配置文件
+  * 编写webpack.config.js指定哪些库不用打包，然后并做dll下的文件的bundle输出和html中自动引入（不使用插件手动引入也可）
 
