@@ -535,13 +535,25 @@ plugins: [
 
 # 性能优化
 
-* webpack性能优化
-  * 开发环境性能优化
-    * 优化打包构建速度
-    * 优化代码调试
-  * 生产环境性能优化
-    * 优化打包构建速度
-    * 优化代码运行的性能
+webpack性能优化（两方面）
+* 开发环境性能优化
+  * 优化打包构建速度
+    * HMR
+  * 优化代码调试
+    * source-map
+* 生产环境性能优化
+  * 优化打包构建速度
+    * oneOf
+    * babel缓存（优化js代码打包速度）
+    * 多进程打包
+  * 优化代码运行的性能
+    * 缓存
+    * tree shaking
+    * code split
+    * 懒加载/预加载
+    * pwa
+    * externals
+    * dll
 
 ## HMR
 
@@ -756,7 +768,7 @@ rules: [
 
 * 如果在package.json中配置`"sideEffects": false`所有代码都没有副作用 （都可以进行tree shaking）
   * 会导致：可能会把 css / @babel/polyfill（副作用）文件干掉
-  * 解决： ``"sideEffects": ["*.css"]`,不对css文件进行tree shaking
+  * 解决： `"sideEffects": ["*.css"]`,不对css文件进行tree shaking
 
 
 
@@ -1068,10 +1080,115 @@ new AddAssetHtmlWebpackPlugin({
 })
 ```
 
-9. webpack.DllReferencePlugin告诉webpack哪个文件不用dabao，而AddAssetHtmlWebpackPlugin就是告诉webpack将某个文件打包输出出去，并在html中自动引入这个资源
+9. webpack.DllReferencePlugin告诉webpack哪个文件不用打包，而AddAssetHtmlWebpackPlugin就是告诉webpack将某个文件打包输出出去，并在html中自动引入这个资源
    1. 我们让webpack不打包index.js中引入的jquery，然后让webpack将dll文件夹下的jquery输出到dist文件夹下，让html自动引入
 
 * 步骤比较繁多
   * 编写webpack.dll.js配置文件来打包库文件并使用指定命令运行此配置文件
   * 编写webpack.config.js指定哪些库不用打包，然后并做dll下的文件的bundle输出和html中自动引入（不使用插件手动引入也可）
 
+
+
+
+
+# 详细配置
+
+官网： https://webpack.docschina.org/configuration/
+
+## entry
+
+* 入口起点
+* 三种形式
+  1. string
+  2. array
+  3. object
+* 注意：
+  * 单入口形式应该在index文件中引入其他js文件
+  * 多入口形式不在index中引入其他js文件
+* string：` './src/index.js', `(单入口)
+  *  打包形成一个chunk，输出一个bundle文件
+  * 此时这个chunk文件默认名称为main.js (如果我们不指定而使用[name].js)
+
+```js
+...
+entry: './src/index.js',
+ output: {
+    filename: '[name].js',
+    path: resolve(__dirname, 'dist')
+},
+...
+```
+
+* array: `['./src/index.js','./src/count.js'],（多入口）`
+  * 所有入口文件最终只会形成一个chunk，输出出去只有一个bundle文件
+  * 作用就是在HMR功能中让html热更新生效（将html作为入口文件添加到数组里）
+* object： key-value，多入口
+  * key：bundle名称
+  * value：对应的入口文件
+  * value可以是一个数组，就是对应的第二种array方式，这表示将这一个数组里的入口文件都打包到这个key下（在dll中常用这种入口形式）
+
+```js
+...
+entry: {
+    index: './src/index.js',
+    count: './src/count.js'
+},
+...
+```
+
+
+
+## output
+
+* filename: 指定文件名称和目录
+* path: 指定文件目录（将来所有资源输出的公共目录）
+* publicPath:  所有资源引入公共路径前缀 --> 'imgs/a.png' --> '/imgs/a.png'
+  * 一般用于生产环境
+  * 就是引入文件资源时候有没有公共前缀，如果配置该项为 ` '/'`的话，会在引入资源的时候加入/前缀
+  *  `/img/a.png`会在当前服务器根目录下找
+  * `img/a.png`会在当前文件夹目录下找
+
+* chunkFilename:  非入口chunk的名称
+
+  * 入口chunk就是entry指定的入口
+
+  * 非入口（额外）chunk
+
+    * 通过import语法引入的文件（import语法会将引入的文件单独作为一个chunk）
+
+    ```js
+    // index.js文件
+    console.log('index.js');
+    
+    import('./test')
+    .then(( { default: test} ) => {
+        console.log(test(1,9));
+    })
+    // { default：test} 解构赋值，因为test文件使用 export default test 默认暴露，而default是个关键字，所以我们在解构赋值时候重命名为test
+    ```
+
+    * 通过optimization将node_module中的文件分割成的单独chunk
+
+* library: 指定向外暴露的变量名
+
+  * 如果 `library: '[name]_libbbb'`,那么会在构建后的main.js文件中发现，他将 `var main_libbb = 你的代码内容`就是将代码向外暴露出去，变量名为指定的这个指
+
+* libraryTarget：他会将向外暴露（也就是library指定的变量）添加到目标属性上
+
+  * 比如：
+
+    ```js
+    library: '[name]_libbbb',
+    libraryTarget: 'window'
+    ```
+
+  * 会发现main.js文件中将它添加到了window上` window.main_libbbb = __webpack_exports__;`
+
+  * 一般来说
+
+    * libraryTarget: 'window' ： 浏览器端全局
+    * libraryTarget: 'global'： node环境下全局
+    * libraryTarget: 'commonjs'： 会以commonjs方式向外暴露
+      * 包括其他的暴露规则（amd等）
+
+  * 一般这两配置结合dll来用才用得到
