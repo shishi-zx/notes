@@ -1192,3 +1192,100 @@ entry: {
       * 包括其他的暴露规则（amd等）
 
   * 一般这两配置结合dll来用才用得到
+
+## module
+
+* rules下
+  * 多个loader用use包含
+  * 单个loader直接用loader指定
+    * 可以通过options指定具体配置选项
+  * exclude：不检查指定目录和文件
+  * include：只检查指定目录和文件
+  * enforce：指定loader的执行顺序（默认从下往上）
+    * pre：优先执行
+    * post：延后执行
+    * 不写：就是中间执行，默认执行
+  * oneOf：其中包含的配置只会同时生效一个，想并用与它同级
+
+```js
+module: {
+    rules: [
+        //loader
+        {
+            test: /\.css/,
+            //多个loader用use包裹
+            use:[
+                'style-loader',
+                'css-loader'
+            ]
+        },
+        // {
+        //     test: /\.js/,
+        //     // 单个loader
+        //     exclude: /node_modules/,
+        //     // includes: resolve(__dirname,'src'),
+        //     enforce: 'pre',
+        //     loader: 'eslint-loader'
+        // }
+    ]
+},
+```
+
+
+
+## resolve
+
+* 解析模块的规则
+
+* alias对象，能配置路径别名，写代码需要引入文件时候，可以用这个别名代替路径
+
+  * ```js
+    resolve: {
+        //配置解析模块路径别名, 在js代码引文件时候，代替路径
+        alias: {
+            $css: resolve(__dirname,'./src/css')
+        }
+    }
+    ```
+
+  * 让后在js代码中引文件时候
+
+  * ```js
+    import '$css/index.css'
+    alert('hello')
+    ```
+
+  * 可以配置多个
+
+* extensions数组：配置省略文件路径的后缀，默认值是 `['.js','.json']`
+
+  * 也就是可以省略文件后缀
+
+  * ```js
+    resolve: {
+        //配置解析模块路径别名, 在js代码引文件时候，代替路径
+        alias: {
+            $css: resolve(__dirname,'./src/css')
+        },
+        extensions: ['.js','.json','.css']
+    }
+    ```
+
+  * 然后index.js中
+
+  * ```js
+    import '$css/index'
+    ```
+
+  * 他会优先使用.js去补充，没有对应文件就 补充.json，没有就找 .css，发现有就引入该文件，一直匹配不到就报错
+
+* modules数组：告诉webpack解析模块是去找哪个目录默认为 `modules: ['node_modules']`
+
+  * 会在当前目录找node_modules，找不到就往外翻一层目录找，直到找到
+
+  * 所以我们可以直接告诉它在哪一层目录，让他直接去找
+
+  * ```js
+    modules: [reslove(__dirname,'../../node_modules'),'node_modules']
+    ```
+
