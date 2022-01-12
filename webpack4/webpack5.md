@@ -1290,3 +1290,71 @@ module: {
     modules: [reslove(__dirname,'../../node_modules'),'node_modules']
     ```
 
+
+
+## devServer
+
+* proxy： 设置代理
+  * '/api': 表示匹配以这开头的请求
+    * target： 要转发到的目标服务器
+    * pathRewrite：重写路径
+
+```js
+devServer: {
+    static: resolve(__dirname,'dist'),
+    compress: true,
+    port: 8000,
+    host: 'localhost',
+    open: true,
+    hot: true,
+    // clientLogLevel: 'none',
+    // quiet: true,
+    client: {
+        overlay: false,
+    },
+    proxy: {
+        '/api': {
+            target:'http://localhost:3000',
+            pathRewrite: {
+                '^/api': ''
+            }
+        }
+    }
+}
+```
+
+
+
+
+
+## optimization
+
+* 以下属性里的值为默认值，不写就是这样的
+
+* splitChunks：做代码分割
+  * chunks： 'all',：所有都要
+  * minSize： 最小限制，大于此值才做代码分割，默认为30kb（30 * 1024）
+  * maxSize：最大限制，默认为0（表示没有限制）
+  * minChunks： 要提取的chunk最少引用次数，默认为1，（最少被引用了一次，才是我们要做的）
+  * maxAsyncRequests： 按需加载时并行加载的文件的最大数量，默认为5
+  * maInitialRequests： 入口js文件最大并行数量，默认3
+  * automaticNameDelimiter： 名称连接符 ，默认‘ ~ ’
+  * name： 可以使用命名规则 默认为true
+  * cacheGroups：分割chunk的组
+    * vendors： 代表一个组，如下，node_modules中的文件会被打包到 vendors 组的chunk中，-->`vendors~xxx.js`
+      * test： 正则，匹配规则 ，`/[\\/]node_modules[\\/]/`
+      * priority:  -10 ，检测文件的优先级
+      * 上面的规则也同时给这里设置（minSize，minChunks）
+    * default：默认的一个组
+      * minChunks：2，要提取的chunk最少被引用次数，会覆盖上一级的这个设置
+      * priority： -20，
+      * reuseExistingChunk：true，如果当前要打包的这个模块和之前已经被提取的模块是同一个，就会复用，而不会重新打包
+
+* runtimeChunk： 设置此项可以处理命名chunk时候的出现的缓存失效问题
+* minimizer：配置生产环境的压缩方案：js和css，首先引入想用的压缩用的库（需要下载，如terser库）
+  * 像插件一样new调用，参数可以传递配置
+  * new TerserWebpackPlugin（{}）
+    * 参数
+    * cache： true，开启缓存
+    * parallel： true，多进程打包
+    * sourceMap： true
