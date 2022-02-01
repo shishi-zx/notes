@@ -461,3 +461,113 @@ Component({
 <myHeaders></myHeaders>
 ```
 
+## 9.4 父组件向子组件传递数据
+
+* 通过标签属性的方式传递
+* 与vue的组件间（父向子）通信prop（这里为properties）
+* properties里接受的数据与data里的数据用法一样
+
+父组件中：
+
+```js
+Page({
+    data: {
+        str: 'hello sub'
+    }
+})
+```
+
+```html
+<view>我是父组件：我想传递的数据: {{str}}</view>
+<myHeaders param1="{{str}}" param2="123456"></myHeaders>
+```
+
+子组件中：
+
+```js
+// components/myHeaders/myHeaders.js
+Component({
+    /**
+     * 组件的属性列表
+     */
+    properties: {
+        param1:{
+            type: String,
+            value: "hh",//这里表示默认值
+        },
+        param2:{
+            type: Number,
+            value: 0
+        }
+    }
+})
+
+```
+
+```html
+<view>我是子组件：我收到的数据：{{param1}} , {{param2}}</view>
+```
+
+## 9.5 子组件向父组件传递数据
+
+* 子组件向父组件传递数据需要使用事件的方式（==类似==vue）
+
+1. 子组件中通过 `this.triggerEvent("方法名","参数（对象形式）")`来触发父组件中给子组件绑定的回调函数
+
+   ```js
+   /**
+    * 组件的方法列表
+    */
+   methods: {
+       clickEvent(){
+           this.triggerEvent("ToFat",{hhh:'gghhh'})
+       }
+   }
+   ```
+
+2. 父组件再使用子组件时候将回调函数传递给子组件
+
+   * 需要注意的是，属性名字要如下：
+   * 也就是刚刚在子组件里  `this.triggerEvent("方法名","参数（对象形式）")`里的方法名是ToFat，但是这里传递的时候要加上 bind
+
+   ```html
+   <!-- 当自定义组件触发“myevent”事件时，调用“onMyEvent”方法 -->
+   <component-tag-name bindToFat="ToFatEvent" />
+   <!-- 或者可以写成 -->
+   <component-tag-name bind:ToFat="ToFatEvent" />
+   ```
+
+3. 这样在子组件中触发时候，就会调用父组件的ToFatEvent方法，父组件中的ToFatEvent为
+
+```js
+ToFatEvent(e){
+    console.log(e);
+    console.log(e.detail.hhh);
+}
+```
+
+* 子组件的 `this.triggerEvent("方法名","参数（对象形式）")`传递过来的参数对象就是这里的 e.detail （注意这里指定的同一个对象，也就是相当于这是一个浅拷贝，特别注意）
+
+## 9.6 slot插槽
+
+* 与 vue 同，可以使用 slot插槽
+
+子组件
+
+```html
+<view>
+    这里是slot插槽
+    <slot></slot>
+</view>
+```
+
+父组件
+
+```html
+<myHeaders >
+    <view>
+        这是给子组件slot显示的内容
+    </view>
+</myHeaders>
+```
+
