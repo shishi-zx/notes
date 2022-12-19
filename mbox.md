@@ -20,7 +20,7 @@ class demo01 {
 ```
 
 ## 计算值（computed values）
-可以定义在相关数据发生变化时自动更新d
+可以定义在相关数据发生变化时自动更新的值
 ```ts
 import { observable, computed } from 'mobx';
 import { observer } from 'mobx-react';
@@ -46,7 +46,8 @@ const t = new class Temperature {
   }
 }
 ```
+
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbMTA0ODczNzA0OSwxMTQ2OTIxMjksMzU3NT
-E3OTgxLDk2MjY1MjY1M119
+eyJoaXN0b3J5IjpbOTQxMzAzMzMsMTE0NjkyMTI5LDM1NzUxNz
+k4MSw5NjI2NTI2NTNdfQ==
 -->
