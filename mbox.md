@@ -22,8 +22,9 @@ class demo01 {
 ## 计算值（computed values）
 ```ts
 
+
 ```
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbOTg3NTAxMTI0LDExNDY5MjEyOSwzNTc1MT
-c5ODEsOTYyNjUyNjUzXX0=
+eyJoaXN0b3J5IjpbMTg0NjI2MjEwMiwxMTQ2OTIxMjksMzU3NT
+E3OTgxLDk2MjY1MjY1M119
 -->
