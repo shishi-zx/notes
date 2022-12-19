@@ -20,8 +20,10 @@ class demo01 {
 ```
 
 ## 计算值（computed values）
+```ts
 
+```
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbMTE0NjkyMTI5LDM1NzUxNzk4MSw5NjI2NT
-I2NTNdfQ==
+eyJoaXN0b3J5IjpbOTg3NTAxMTI0LDExNDY5MjEyOSwzNTc1MT
+c5ODEsOTYyNjUyNjUzXX0=
 -->
