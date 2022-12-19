@@ -8,8 +8,13 @@
 # 核心概念
 
 ## 可观察的状态（observable state）
-通过 @o b
+通过 @observable 装饰器来给类属性添加注解
+```
+class demo01 {
+	@observable
+}
+```
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbLTE0MDU0MDE5MTAsMzU3NTE3OTgxLDk2Mj
-Y1MjY1M119
+eyJoaXN0b3J5IjpbLTkzMTY4NzE0LDM1NzUxNzk4MSw5NjI2NT
+I2NTNdfQ==
 -->
