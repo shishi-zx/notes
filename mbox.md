@@ -9,6 +9,7 @@
 
 ## 可观察的状态（observable state）
 通过 @observable 装饰器来给类属性添加注解
+* 属性可以是对象或者数组
 ```ts
 import { observable } from "mobx";
 
@@ -17,7 +18,10 @@ class demo01 {
 	@observable timer = 0;
 }
 ```
+
+## 计算值（computed values）
+
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbMTA0Mjk3MTczOCwzNTc1MTc5ODEsOTYyNj
-UyNjUzXX0=
+eyJoaXN0b3J5IjpbMTE0NjkyMTI5LDM1NzUxNzk4MSw5NjI2NT
+I2NTNdfQ==
 -->
