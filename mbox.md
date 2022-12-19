@@ -9,13 +9,15 @@
 
 ## 可观察的状态（observable state）
 通过 @observable 装饰器来给类属性添加注解
-```
+```ts
+import { observable } from "mobx";
+
 class demo01 {
 	@observable title = 'hello';
 	@observable timer = 0;
 }
 ```
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbMTEyMjUyMjkxMCwzNTc1MTc5ODEsOTYyNj
+eyJoaXN0b3J5IjpbMTA0Mjk3MTczOCwzNTc1MTc5ODEsOTYyNj
 UyNjUzXX0=
 -->
