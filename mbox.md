@@ -11,10 +11,11 @@
 通过 @observable 装饰器来给类属性添加注解
 ```
 class demo01 {
-	@observable
+	@observable title = 'hello';
+	@observable timer = 0;
 }
 ```
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbLTkzMTY4NzE0LDM1NzUxNzk4MSw5NjI2NT
-I2NTNdfQ==
+eyJoaXN0b3J5IjpbMTEyMjUyMjkxMCwzNTc1MTc5ODEsOTYyNj
+UyNjUzXX0=
 -->
